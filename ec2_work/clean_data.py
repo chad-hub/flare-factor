@@ -62,5 +62,81 @@ flare_df['TOTAL_LEASE_FLARE_VOL'] = flare_df['CASINGHEAD_GAS_FLARED'] + flare_df
 # %%
 flare_df.head()
 # %%
-)
+flare_df.to_csv('flare_info.csv')
+# %%
+
+# %%
+resp = s3.list_objects_v2(Bucket='cbh-capstone1-texasrrc')
+for obj in resp['Contents']:
+  print(obj['Key'])
+
+
+
+# %%
+test_og = pd.read_csv('s3://cbh-capstone1-texasrrc/OG_LEASE_CYCLE_DATA_TABLE.dsv',
+               delimiter='}', chunksize=10000)
+
+# %%
+test_df = test_og.get_chunk(100000)
+# %%
+test_df.head()
+# %%
+test_df.columns
+# %%
+cols_og = ['DISTRICT_NO', 'LEASE_NO', 'CYCLE_YEAR_MONTH', 'OPERATOR_NO',
+       'OPERATOR_NAME', 'LEASE_OIL_PROD_VOL', 'LEASE_GAS_PROD_VOL', 'LEASE_COND_PROD_VOL', 'LEASE_CSGD_PROD_VOL']
+# %%
+og_df = pd.read_csv('s3://cbh-capstone1-texasrrc/OG_LEASE_CYCLE_DATA_TABLE.dsv',
+                       delimiter='}', usecols=cols_og)
+# %%
+og_df.info()
+# %%
+og_df['CYCLE_YEAR_MONTH'].min()
+# %%
+og_df.head()
+# %%
+flare_df = pd.read_csv('flare_info.csv')
+# %%
+flare_df['CYCLE_YEAR_MONTH'].min()
+# %%
+og_df.to_csv('og_info.csv')
+# %%
+flare_df.drop('Unnamed: 0', axis=1, inplace=True)
+# %%
+flare_df.head()
+# %%
+flare_df.shape
+# %%
+og_df.shape
+# %%
+flare_df['DISTRICT_NO'].value_counts()
+# %%
+import time
+# %%
+start_time = time.time()
+merged_df = pd.merge(flare_df, og_df, on=['DISTRICT_NO', 'LEASE_NO', 'CYCLE_YEAR_MONTH'], how='left')
+print(f'Merging took {time.time() - start_time} to execute')
+# %%
+merged_df.info()
+# %%
+merged_df.head()
+# %%
+merged_df.columns
+# %%
+merged_df = merged_df.reindex(columns=['DISTRICT_NO', 'LEASE_NO', 'CYCLE_YEAR_MONTH', 'OPERATOR_NO_x', 'OPERATOR_NO_y', 'OPERATOR_NAME_x', 'OPERATOR_NAME_y', 'LEASE_OIL_PROD_VOL',
+       'LEASE_GAS_PROD_VOL', 'LEASE_COND_PROD_VOL', 'LEASE_CSGD_PROD_VOL', 'GAS_FLARED', 'CASINGHEAD_GAS_FLARED', 'TOTAL_LEASE_FLARE_VOL' ])
+# %%
+merged_df.head()
+# %%
+merged_df['TOTAL_LEASE_FLARE_VOL'].sum()
+# %%
+merged_df.to_csv('merged_flare_og.csv')
+# %%
+import codecs
+import gzip
+# %%
+f = gzip.open('grf047.ebc.gz', 'r')
+file_content = f.read()
+# file_content = file_content.decode('COMP')
+file_content
 # %%
