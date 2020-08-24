@@ -22,7 +22,7 @@ textfile = pd.read_csv('s3://cbh-capstone1-texasrrc/OG_LEASE_CYCLE_DISP_DATA_TAB
 # %%
 ave_bytes = 0
 for idx, chunk in enumerate(textfile, start=1):
-  ave_bytes += chunk.memory_usage
+  ave_bytes += chunk.memory_usage()
 
 print('total number of chunks: ', idx)
 print(f'Average bytes per loop: {ave_bytes/idx}')
@@ -46,10 +46,21 @@ file = pd.read_csv('s3://cbh-capstone1-texasrrc/OG_LEASE_CYCLE_DISP_DATA_TABLE.d
 flare_by_lease_arr = chunks_to_dfs(file, cols)
 
 # %%
-# new_df.rename(columns={'LEASE_CSGD_DISPCDE04_VOL': 'CASINGHEAD_GAS_FLARED', 'LEASE_GAS_DISPCD04_VOL':'GAS_FLARED'})
-    # new_df['TOTAL_LEASE_FLARE_VOL'] = df['CASINGHEAD_GAS_FLARED'] + df['GAS_FLARED']
+
 # %%
 
-flare_df = pd.DataFrame(flare_by_lease_arr)
+flare_df = pd.read_csv('s3://cbh-capstone1-texasrrc/OG_LEASE_CYCLE_DISP_DATA_TABLE.dsv',
+                       delimiter='}', usecols=cols)
+# %%
+flare_df.info()
 # %%
 flare_df.head()
+# %%
+flare_df.rename(columns={'LEASE_CSGD_DISPCDE04_VOL': 'CASINGHEAD_GAS_FLARED', 'LEASE_GAS_DISPCD04_VOL':'GAS_FLARED'}, inplace=True)
+flare_df['TOTAL_LEASE_FLARE_VOL'] = flare_df['CASINGHEAD_GAS_FLARED'] + flare_df['GAS_FLARED']
+
+# %%
+flare_df.head()
+# %%
+)
+# %%
