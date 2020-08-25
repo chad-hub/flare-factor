@@ -135,8 +135,21 @@ merged_df.to_csv('merged_flare_og.csv')
 import codecs
 import gzip
 # %%
-f = gzip.open('grf047.ebc.gz', 'r')
-file_content = f.read()
-# file_content = file_content.decode('COMP')
-file_content
+
+import os
+import datetime as dt
+
+import pandas
+
+from arcgis.gis import GIS
+# %%
+import geopandas as gp
+# %%
+df = pd.read_csv('s3://cbh-capstone1-texasrrc/merged_flare_og.csv')
+# %%
+df.head()
+# %%
+df.drop('Unnamed: 0', axis=1, inplace=True)
+# %%
+df.head()
 # %%
