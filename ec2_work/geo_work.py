@@ -34,4 +34,5 @@ for f in filenames:
 
   # %%
 import fiona
+import geoplot
 # %%
