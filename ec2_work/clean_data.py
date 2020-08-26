@@ -198,4 +198,3 @@ ax = sns.lineplot(x='YEAR', y='TOTAL_LEASE_FLARE_VOL',
 # %%
 df_districts.to_csv('group_by_district_yr.csv')
 # %%
-df_districts.info()
