@@ -8,6 +8,8 @@ import os
 import s3fs
 import numpy as np
 
+plt.style.use('ggplot')
+
 # %%
 s3 = boto3.client('s3')
 s3.list_buckets()
@@ -153,3 +155,47 @@ df.drop('Unnamed: 0', axis=1, inplace=True)
 # %%
 df.head()
 # %%
+
+# %%
+from datetime import datetime, date
+from pandas.tseries.offsets import MonthEnd
+
+test = pd.to_datetime(df['CYCLE_YEAR_MONTH'], yearfirst=True, format='%Y%m') + MonthEnd()
+
+test[0:10]
+# %%
+df['CYCLE_YEAR_MONTH'] = pd.to_datetime(df['CYCLE_YEAR_MONTH'], yearfirst=True, format='%Y%m')
+# %%
+df.head()
+# %%
+df['CYCLE_YEAR_MONTH'][0].year
+
+# %%
+df['OPERATOR_NAME_x'].value_counts()
+
+# %%
+df['YEAR'] = df['CYCLE_YEAR_MONTH'].dt.year
+
+# %%
+df['MONTH'] = df['CYCLE_YEAR_MONTH'].dt.month
+# %%
+df_districts = df.groupby(['DISTRICT_NO', 'YEAR'])['LEASE_OIL_PROD_VOL',
+                            'LEASE_GAS_PROD_VOL',
+                            'LEASE_COND_PROD_VOL',
+                            'LEASE_CSGD_PROD_VOL',
+                            'TOTAL_LEASE_FLARE_VOL'].sum().reset_index()
+# %%
+df_districts.head()
+
+# %%
+df_districts['YEAR']
+# %%
+ax = sns.lineplot(x='YEAR', y='TOTAL_LEASE_FLARE_VOL',
+                  data=df_districts,
+                  hue=df_districts['DISTRICT_NO'],
+                  legend='full',
+                  palette='winter')
+# %%
+df_districts.to_csv('group_by_district_yr.csv')
+# %%
+df_districts.info()
