@@ -29,9 +29,6 @@ ftp.login()
 ftp.cwd(dir)
 filenames = ftp.nlst()
 # %%
-for f in filenames:
-  getFile(ftp, f)
-
   # %%
 import fiona
 import geoplot
