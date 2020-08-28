@@ -351,9 +351,11 @@ largest_df = df_2000.loc[largest, :]
 np.std(df_2000['WASTE_RATIO'])
 largest_df.head()
 # %%
-sns.distplot(largest_df['WASTE_RATIO'], kde=False)
+x = sns.distplot(largest_df['WASTE_RATIO'], kde=False)
+x.set_title('Waste Ratio Distribution of Top 100')
+plt.show(x)
 # %%
-largest_df['OPERATOR_NAME_x'].value_counts()[:25]
+largest_df['OPERATOR_NAME_x'].value_counts()
 # %%
 largest_df.head()
 # %%
@@ -423,3 +425,16 @@ for d in districts:
 # %%
 df_2000['WASTE_RATIO'].describe()
 # %%
+lease_df[lease_df['WASTE_RATIO'] ==lease_df['WASTE_RATIO'].max()]
+# %%
+lease_df.iloc[6892846, :]
+# %%
+worst_lease = df_2000[df_2000['LEASE_NO'] == 43213]
+# %%
+sns.lineplot(x=worst_lease['MONTHS_FROM_FIRST_REPORT'], y=worst_lease['WASTE_RATIO'])
+# %%
+worst_lease[['LEASE_NO', 'MONTH', 'YEAR', 'OPERATOR_NO_x', 'OPERATOR_NAME_x', 'LEASE_FLARE_ENERGY (GWH)', 'TOTAL_ENERGY_PROD (GWH)', 'WASTE_RATIO']]
+# %%
+largest_df.head()
+# %%
+df_2000.shape

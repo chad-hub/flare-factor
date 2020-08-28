@@ -41,8 +41,8 @@ df_dum.columns
 df_dum.head()
 # %%
 cols_to_drop = ['LEASE_NO', 'MONTH', 'YEAR', 'OPERATOR_NO_x', 'OPERATOR_NAME_x',
-       'LEASE_OIL_PROD_VOL', 'LEASE_GAS_PROD_VOL', 'LEASE_COND_PROD_VOL',
-       'LEASE_CSGD_PROD_VOL', 'GAS_FLARED', 'CASINGHEAD_GAS_FLARED',
+       'LEASE_OIL_PROD_ENERGY (GWH)', 'LEASE_GAS_PROD_ENERGY (GWH)',
+       'LEASE_CSGD_PROD_ENERGY (GWH)', 'LEASE_COND_PROD_ENERGY (GWH)', 'GAS_FLARED', 'CASINGHEAD_GAS_FLARED',
        'TOTAL_LEASE_FLARE_VOL', 'FIRST_PROD_REPORT', 'LAST_REPORT',
        'REPORT_DATE', 'LEASE_FLARE_ENERGY (GWH)', 'TOTAL_ENERGY_PROD (GWH)', 'WASTE_RATIO']
 
@@ -50,11 +50,18 @@ cols_to_drop = ['LEASE_NO', 'MONTH', 'YEAR', 'OPERATOR_NO_x', 'OPERATOR_NAME_x',
 samp_df = df_dum.sample(frac=0.25, random_state=42)
 samp_df.columns
 # %%
-X = samp_df.drop(cols_to_drop, axis=1)
-y = samp_df.pop('LEASE_FLARE_ENERGY (GWH)')
-
+# X = samp_df.drop(cols_to_drop, axis=1)
+y = samp_df['TOTAL_LEASE_FLARE_VOL']
+X_1 = samp_df[['LEASE_CSGD_PROD_VOL', 'MONTHS_FROM_FIRST_REPORT', 'COMPANY_CAT_(2.0, 14900.0]',
+ 'DIST_1',
+ 'COMPANY_CAT_(-0.001, 2.0]',
+ 'Price of Oil',
+ 'LEASE_COND_PROD_VOL',
+ 'DIST_10',
+ 'LEASE_GAS_PROD_VOL',
+ 'LEASE_OIL_PROD_VOL' ]]
 # %%
-X_train, X_test, y_train, y_test = tts(np.array(X), np.array(y), test_size=0.33, random_state=42)
+X_train, X_test, y_train, y_test = tts(np.array(X_1), np.array(y), test_size=0.33, random_state=42)
 # %%
 
 
@@ -86,7 +93,7 @@ from sklearn.ensemble import GradientBoostingRegressor
 gbr = GradientBoostingRegressor(n_estimators=100,
                                 criterion='mse',
                                 verbose=1,
-                                learning_rate=0.1)
+                                learning_rate=0.01)
 gbr.fit(X_train, y_train)
 # %%
 def stage_score_plot(model, X_train, y_train, X_test, y_test):
@@ -191,4 +198,81 @@ visualizer = ResidualsPlot(gbr)
 visualizer.fit(X_train, y_train)
 visualizer.score(X_test, y_test)
 visualizer.show()
+# %%
+import pickle
+gbr2 = pickle.load(open('GradBoost.sav', 'rb'))
+# %%
+gbr2.fit(X_train, y_train)
+
+# %%
+stage_score_plot(gbr2, X_train, y_train, X_test, y_test)
+plt.legend()
+plt.show()
+# %%
+y_pred_train_gbr2 = gbr2.predict(X_train)
+y_pred_test_gbr2 = gbr2.predict(X_test)
+
+test_mse_gbr2 = mean_squared_error(y_test, y_pred_test_gbr2)
+train_mse_gbr2 = mean_squared_error(y_train, y_pred_train_gbr2)
+print(f'Test RMSE GBR: {test_mse_gbr2**0.5}')
+print(f'Train RMSE GBR: {train_mse_gbr2**0.5}')
+
+# %%
+r2_test_gbr2 = gbr2.score(X_test,y_test)
+r2_train_gbr2 = gbr2.score(X_train,y_train)
+print(f'Test r2: {r2_test_gbr2}')
+print(f'Train r2: {r2_train_gbr2}')
+# %%
+gbr2.feature_importances_
+# %%
+fig, ax = plt.subplots()
+
+feature_importances = 100*gbr2.feature_importances_ 
+names = X.columns
+feature_importances, feature_names, feature_idxs = \
+    zip(*sorted(zip(feature_importances, names, range(len(names)))))
+
+width = 0.8
+
+idx = np.arange(len(names))
+ax.barh(idx, feature_importances, align='center')
+ax.set_yticks(idx, feature_names)
+ax.set_yticklabels(feature_names)
+ax.set_title("Feature Importances in Gradient Booster")
+ax.set_xlabel('Relative Importance of Feature', fontsize=14)
+ax.set_ylabel('Feature Name', fontsize=14)
+
+# %%
+X.columns[0]
+# %%
+print(feature_importances)
+print(feature_names)
+# %%
+X_2 = X[['LEASE_COND_PROD_VOL', 'MONTHS_FROM_FIRST_REPORT']]
+XT, Xt, yT, yt = tts(np.array(X_2), np.array(y),test_size=0.33, random_state=42 )
+
+# %%
+gbr3 = GradientBoostingRegressor()
+gbr3.fit(np.array(XT),np.array(yT))
+# %%
+
+# %%
+stage_score_plot(gbr3, XT, yT, Xt, yt)
+plt.legend()
+plt.show()
+
+# %%
+y_pred_train_gbr3 = gbr3.predict(XT)
+y_pred_test_gbr3 = gbr3.predict(Xt)
+
+test_mse_gbr3 = mean_squared_error(yt, y_pred_test_gbr3)
+train_mse_gbr3 = mean_squared_error(yT, y_pred_train_gbr3)
+print(f'Test RMSE GBR: {test_mse_gbr3**0.5}')
+print(f'Train RMSE GBR: {train_mse_gbr3**0.5}')
+
+# %%
+r2_test_gbr3 = gbr3.score(Xt,yt)
+r2_train_gbr3 = gbr3.score(XT,yT)
+print(f'Test r2: {r2_test_gbr3}')
+print(f'Train r2: {r2_train_gbr3}')
 # %%
