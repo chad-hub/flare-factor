@@ -1,4 +1,5 @@
 # %%
+#initialize workspace
 import pandas as pd
 import seaborn as sns; sns.set()
 import matplotlib.pyplot as plt
@@ -8,193 +9,99 @@ import os
 import s3fs
 import numpy as np
 
-plt.style.use('ggplot')
 
 # %%
-s3 = boto3.client('s3')
-s3.list_buckets()
-# %%
-response = s3.list_objects_v2(Bucket='cbh-capstone1-texasrrc')
-for obj in response['Contents']:
-  print(obj['Key'])
-# %%
-textfile = pd.read_csv('s3://cbh-capstone1-texasrrc/OG_LEASE_CYCLE_DISP_DATA_TABLE.dsv',
-                       delimiter='}', chunksize=1000000)
+def s3_to_df(bucket_name, filename, chunk_data=True, chunksize=100000):
+  '''
+  Establish connection to Amazon s3 bucket, retrieve chunks of data (unless working with EC2 that can handle the whole file),
+  clean columns and return dataframes.
+
+  Parameters:
+  s3 bucket name: where data is stored
+  filename_1: Flaring data
+  filename_2: production data
+  chunk_data: Boolean to determine if data needs to be handled in chunks
+  size of chunks (if working with personal computer)
+
+  Returns:
+  Dataframe
+
+  '''
+  s3 = boto3.client('s3') #establish boto3
+  if chunk_data:
+    textfile = pd.read_csv('s3://'+bucket_name+'/'+filename,
+    delimiter='}', chunksize=chunksize,)
+    df = textfile.get_chunk(chunksize)
+  else:
+    df = pd.read_csv('s3://'+ bucket_name + '/' + filename,
+    delimiter='}', chunksize=chunksize, skiprows=30000000)
+  return df
 
 # %%
-ave_bytes = 0
-for idx, chunk in enumerate(textfile, start=1):
-  ave_bytes += chunk.memory_usage()
+stuff = s3_to_df('cbh-capstone1-texasrrc',
+                    'OG_LEASE_CYCLE_DISP_DATA_TABLE.dsv',
+                    chunk_data=True, chunksize=100000)
+thing = s3_to_df('cbh-capstone1-texasrrc',
+                    'OG_LEASE_CYCLE_DATA_TABLE.dsv',
+                    chunk_data=True, chunksize=100000)
 
-print('total number of chunks: ', idx)
-print(f'Average bytes per loop: {ave_bytes/idx}')
-# %%
-
-def chunks_to_dfs(chunk_file, cols):
-  data = []
-  for idx, chunk in enumerate(chunk_file, start=1):
-    data_array = chunk[cols].to_numpy()
-    data.append(data_array)
-    print(idx)
-  return data
-
-
-# %%
-cols = ['DISTRICT_NO', 'LEASE_NO', 'CYCLE_YEAR_MONTH', 'OPERATOR_NO',
-       'OPERATOR_NAME', 'LEASE_CSGD_DISPCDE04_VOL', 'LEASE_GAS_DISPCD04_VOL']
-
-file = pd.read_csv('s3://cbh-capstone1-texasrrc/OG_LEASE_CYCLE_DISP_DATA_TABLE.dsv',
-                       delimiter='}', chunksize=1000000)
-flare_by_lease_arr = chunks_to_dfs(file, cols)
-
-# %%
+thing.head()
 
 # %%
 
-flare_df = pd.read_csv('s3://cbh-capstone1-texasrrc/OG_LEASE_CYCLE_DISP_DATA_TABLE.dsv',
-                       delimiter='}', usecols=cols)
-# %%
-flare_df.info()
-# %%
-flare_df.head()
-# %%
-flare_df.rename(columns={'LEASE_CSGD_DISPCDE04_VOL': 'CASINGHEAD_GAS_FLARED', 'LEASE_GAS_DISPCD04_VOL':'GAS_FLARED'}, inplace=True)
-flare_df['TOTAL_LEASE_FLARE_VOL'] = flare_df['CASINGHEAD_GAS_FLARED'] + flare_df['GAS_FLARED']
+haha = merge_dfs(stuff, thing, flare_cols, prod_cols)
 
+haha.head()
 # %%
-flare_df.head()
-# %%
-flare_df.to_csv('flare_info.csv')
-# %%
+def merge_dfs(df1, df2, cols1, cols2):
+  '''Merge production + flare data'''
+  df1 = df1[cols1]
+  print(df1.shape)
+  df2 = df2[cols2]
+  print(df2.shape)
+  print(df1.merge(df2, how='left').shape)
+  df = df1.merge(df2, how='inner')
+  print(df.shape)
+  return df
 
-# %%
-resp = s3.list_objects_v2(Bucket='cbh-capstone1-texasrrc')
-for obj in resp['Contents']:
-  print(obj['Key'])
-
-
-
-# %%
-test_og = pd.read_csv('s3://cbh-capstone1-texasrrc/OG_LEASE_CYCLE_DATA_TABLE.dsv',
-               delimiter='}', chunksize=10000)
-
-# %%
-test_df = test_og.get_chunk(100000)
-# %%
-test_df.head()
-# %%
-test_df.columns
-# %%
-cols_og = ['DISTRICT_NO', 'LEASE_NO', 'CYCLE_YEAR_MONTH', 'OPERATOR_NO',
-       'OPERATOR_NAME', 'LEASE_OIL_PROD_VOL', 'LEASE_GAS_PROD_VOL', 'LEASE_COND_PROD_VOL', 'LEASE_CSGD_PROD_VOL']
-# %%
-og_df = pd.read_csv('s3://cbh-capstone1-texasrrc/OG_LEASE_CYCLE_DATA_TABLE.dsv',
-                       delimiter='}', usecols=cols_og)
-# %%
-og_df.info()
-# %%
-og_df['CYCLE_YEAR_MONTH'].min()
-# %%
-og_df.head()
-# %%
-flare_df = pd.read_csv('flare_info.csv')
-# %%
-flare_df['CYCLE_YEAR_MONTH'].min()
-# %%
-og_df.to_csv('og_info.csv')
-# %%
-flare_df.drop('Unnamed: 0', axis=1, inplace=True)
-# %%
-flare_df.head()
-# %%
-flare_df.shape
-# %%
-og_df.shape
-# %%
-flare_df['DISTRICT_NO'].value_counts()
-# %%
-import time
-# %%
-start_time = time.time()
-merged_df = pd.merge(flare_df, og_df, on=['DISTRICT_NO', 'LEASE_NO', 'CYCLE_YEAR_MONTH'], how='left')
-print(f'Merging took {time.time() - start_time} to execute')
-# %%
-merged_df.info()
-# %%
-merged_df.head()
-# %%
-merged_df.columns
 # %%
 merged_df = merged_df.reindex(columns=['DISTRICT_NO', 'LEASE_NO', 'CYCLE_YEAR_MONTH', 'OPERATOR_NO_x', 'OPERATOR_NO_y', 'OPERATOR_NAME_x', 'OPERATOR_NAME_y', 'LEASE_OIL_PROD_VOL',
        'LEASE_GAS_PROD_VOL', 'LEASE_COND_PROD_VOL', 'LEASE_CSGD_PROD_VOL', 'GAS_FLARED', 'CASINGHEAD_GAS_FLARED', 'TOTAL_LEASE_FLARE_VOL' ])
-# %%
-merged_df.head()
-# %%
-merged_df['TOTAL_LEASE_FLARE_VOL'].sum()
-# %%
-merged_df.to_csv('merged_flare_og.csv')
-# %%
-import codecs
-import gzip
-# %%
-
-import os
-import datetime as dt
-
-import pandas
-
-from arcgis.gis import GIS
-# %%
-import geopandas as gp
-# %%
-df = pd.read_csv('s3://cbh-capstone1-texasrrc/merged_flare_og.csv')
-# %%
-df.head()
-# %%
-df.drop('Unnamed: 0', axis=1, inplace=True)
-# %%
-df.head()
-# %%
-
-# %%
-from datetime import datetime, date
-from pandas.tseries.offsets import MonthEnd
 
 test = pd.to_datetime(df['CYCLE_YEAR_MONTH'], yearfirst=True, format='%Y%m') + MonthEnd()
 
-test[0:10]
-# %%
-df['CYCLE_YEAR_MONTH'] = pd.to_datetime(df['CYCLE_YEAR_MONTH'], yearfirst=True, format='%Y%m')
-# %%
-df.head()
-# %%
-df['CYCLE_YEAR_MONTH'][0].year
-
-# %%
-df['OPERATOR_NAME_x'].value_counts()
-
-# %%
-df['YEAR'] = df['CYCLE_YEAR_MONTH'].dt.year
-
-# %%
-df['MONTH'] = df['CYCLE_YEAR_MONTH'].dt.month
 # %%
 df_districts = df.groupby(['DISTRICT_NO', 'YEAR'])['LEASE_OIL_PROD_VOL',
                             'LEASE_GAS_PROD_VOL',
                             'LEASE_COND_PROD_VOL',
                             'LEASE_CSGD_PROD_VOL',
                             'TOTAL_LEASE_FLARE_VOL'].sum().reset_index()
-# %%
-df_districts.head()
 
 # %%
-df_districts['YEAR']
+
 # %%
-ax = sns.lineplot(x='YEAR', y='TOTAL_LEASE_FLARE_VOL',
-                  data=df_districts,
-                  hue=df_districts['DISTRICT_NO'],
-                  legend='full',
-                  palette='winter')
+if __name__ == '__main__':
+  flare_df = s3_to_df('cbh-capstone1-texasrrc',
+                    'OG_LEASE_CYCLE_DISP_DATA_TABLE.dsv',
+                    chunk_data=True, chunksize=100000)
+
+  prod_df = s3_to_df('cbh-capstone1-texasrrc',
+                    'OG_LEASE_CYCLE_DATA_TABLE.dsv',
+                    chunk_data=True, chunksize=100000)
+
+  flare_cols = ['DISTRICT_NO', 'LEASE_NO', 'CYCLE_YEAR' , 'CYCLE_MONTH',
+                    'OPERATOR_NO','OPERATOR_NAME',
+                    'LEASE_CSGD_DISPCDE04_VOL', 'LEASE_GAS_DISPCD04_VOL']
+
+  prod_cols = ['DISTRICT_NO', 'LEASE_NO', 'CYCLE_YEAR' , 'CYCLE_MONTH',
+                    'OPERATOR_NO','OPERATOR_NAME', 'LEASE_OIL_PROD_VOL',
+                    'LEASE_GAS_PROD_VOL', 'LEASE_COND_PROD_VOL',
+                    'LEASE_CSGD_PROD_VOL']
+
+  df = merge_dfs(flare_df, prod_df, flare_cols, prod_cols)
+  df.rename(columns={'LEASE_CSGD_DISPCDE04_VOL': 'CASINGHEAD_GAS_FLARED', 'LEASE_GAS_DISPCD04_VOL':'GAS_FLARED'}, inplace=True)
+  df['TOTAL_LEASE_FLARE_VOL'] = df['CASINGHEAD_GAS_FLARED'] + df['GAS_FLARED']
+
 # %%
-df_districts.to_csv('group_by_district_yr.csv')
+df.head()
 # %%
