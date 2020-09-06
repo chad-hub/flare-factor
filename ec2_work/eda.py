@@ -9,30 +9,90 @@ import s3fs
 import numpy as np
 import matplotlib
 
+import io
+import boto3
+import os
+import s3fs
+
+import clean_data
+
 %matplotlib inline
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
 matplotlib.rcParams['figure.figsize'] = (12,8)
-sns.set_style(style="whitegrid")
+sns.set(font_scale=1.5, style="whitegrid")
 plt.style.use('ggplot')
-# %%
-df_dist_year = pd.read_csv('s3://cbh-capstone1-texasrrc/group_by_district_yr.csv')
-# %%
-## Load in larger data set
-s3 = boto3.client('s3')
 
 # %%
-df = pd.read_pickle('s3://cbh-capstone1-texasrrc/df_2000_plus.pkl')
-# %%
+df = pd.read_pickle('s3://cbh-capstone1-texasrrc/clean_df.pkl')
 df.head()
+
 # %%
-df.to_pickle('df.pkl')
+df = clean_data.main()
+df.info()
 # %%
-a = sns.lineplot(x=df_dist_year['YEAR'],
-            y=df_dist_year['TOTAL_LEASE_FLARE_VOL'],
-            hue=df_dist_year['DISTRICT_NO'],
+
+df_dist = df.groupby(['DISTRICT_NO', 'REPORT_DATE'])[
+                'LEASE_OIL_PROD_VOL', 'LEASE_GAS_PROD_VOL',
+                'LEASE_COND_PROD_VOL','LEASE_CSGD_PROD_VOL',
+                'TOTAL_LEASE_FLARE_VOL'].sum().reset_index()
+
+# pd.to_datetime(df_dist['REPORT_DATE'].apply(lambda x: x.to_timestamp()))
+df_dist.set_index('REPORT_DATE', inplace=True)
+# plt.plot(df_dist['TOTAL_LEASE_FLARE_VOL'], )
+df_dist.head()
+# %%
+
+def plot_districts(data):
+  df_dist = data.groupby(['DISTRICT_NO', 'REPORT_DATE'])[
+                'LEASE_OIL_PROD_VOL', 'LEASE_GAS_PROD_VOL',
+                'LEASE_COND_PROD_VOL','LEASE_CSGD_PROD_VOL',
+                'TOTAL_LEASE_FLARE_VOL'].sum().reset_index()
+
+  # df_dist['REPORT_DATE'] = df_dist['REPORT_DATE'].to_timestamp(freq='M')
+  # df_dist.set_index('REPORT_DATE', inplace=True)
+
+  fig, ax = plt.subplots(5, 1)
+
+  a = sns.lineplot(x=df_dist['REPORT_DATE'],
+            y=df_dist['TOTAL_LEASE_FLARE_VOL'],
+            hue=df_dist['DISTRICT_NO'],
             palette='coolwarm',
-            legend='full'
-            )
-a.set_title('Flare Volumes by District')
+            legend='full')
+  a.set_title('Flare Volumes by District')
+
+  b = sns.lineplot(x=df_dist['REPORT_DATE'],
+            y=df_dist['LEASE_OIL_PROD_VOL'],
+            hue=df_dist['DISTRICT_NO'],
+            palette='coolwarm',
+            legend='full')
+  b.set_title('Oil Production by District')
+
+  c = sns.lineplot(x=df_dist['REPORT_DATE'],
+            y=(df_dist['LEASE_CSGD_PROD_VOL'] + df_dist['LEASE_GAS_PROD_VOL']),
+            hue=df_dist['DISTRICT_NO'],
+            palette='coolwarm',
+            legend='full')
+  c.set_title('Gas Production by District')
+
+  d = sns.lineplot(x=df_dist['REPORT_DATE'],
+            y=(df_dist['TOTAL_LEASE_FLARE_VOL'] / df_dist['LEASE_CSGD_PROD_VOL']),
+            hue=df_dist['DISTRICT_NO'],
+            palette='coolwarm',
+            legend='full')
+  d.set_title('Flare Gas - Gas Production Ratio by District')
+
+  e = sns.lineplot(x=df_dist['REPORT_DATE'],
+            y=(df_dist['TOTAL_LEASE_FLARE_VOL'] / df_dist['LEASE_OIL_PROD_VOL']),
+            hue=df_dist['DISTRICT_NO'],
+            palette='coolwarm',
+            legend='full')
+  e.set_title('Flare Gas - Oil Production Ratio by District')
+
+  plt.show(a) , plt.show(b), plt.show(c), plt.show(d), plt.show(e)
+
+# %%
+plot_districts(df)
 # %%
 b = sns.pairplot(df_dist_year.loc[:,['DISTRICT_NO','LEASE_OIL_PROD_VOL',
                             'LEASE_GAS_PROD_VOL',
@@ -264,19 +324,6 @@ df_district_yr[df_district_yr['DISTRICT_NO'] == 1].head()
 
 
 # %%
-oil_kwh = 1700 #per bbl
-gas_kwh = 293 #per mcf
-cond_kwh = 1589 #per bbl (0.935 bbl oil = 1 bbl condensate)
-
-df_2000['LEASE_OIL_PROD_ENERGY (GWH)'] = (df['LEASE_OIL_PROD_VOL'] * oil_kwh) / 1000000
-df_2000['LEASE_GAS_PROD_ENERGY (GWH)'] = (df['LEASE_GAS_PROD_VOL'] * gas_kwh) / 1000000
-df_2000['LEASE_CSGD_PROD_ENERGY (GWH)'] = (df['LEASE_CSGD_PROD_VOL'] * gas_kwh) / 1000000
-df_2000['LEASE_COND_PROD_ENERGY (GWH)'] = (df['LEASE_COND_PROD_VOL'] * cond_kwh) / 1000000
-df_2000['LEASE_FLARE_ENERGY (GWH)'] = (df['TOTAL_LEASE_FLARE_VOL'] * gas_kwh) / 1000000
-df_2000['TOTAL_ENERGY_PROD (GWH)'] = (df_2000['LEASE_COND_PROD_ENERGY (GWH)'] +
-                                    df_2000['LEASE_CSGD_PROD_ENERGY (GWH)'] +
-                                    df_2000['LEASE_GAS_PROD_ENERGY (GWH)'] +
-                                    df_2000['LEASE_OIL_PROD_ENERGY (GWH)'])
 
 df_2000['WASTE_RATIO'] = df_2000['LEASE_FLARE_ENERGY (GWH)'] / df_2000['TOTAL_ENERGY_PROD (GWH)']
 ## Drop inf values w/ np.where(WASTE_RATIO) = np.inf
@@ -415,7 +462,7 @@ for d in districts:
   std_ = np.std(df_2000[df_2000['DISTRICT_NO']==d]['TOTAL_LEASE_FLARE_VOL'])
   print(f'District {d}:{round(min_,4)},{round(quartiles[0],4)},{round(quartiles[1],4)}, {round(quartiles[2],4)}, {round(max_,4)}, STD: {round(std_,4)}')
   print(df_2000[df_2000['DISTRICT_NO']==d]['TOTAL_LEASE_FLARE_VOL'].describe())
-  
+
   # print(f'Max: {round(max_,2)}')
   # print(f'25th Percentile: {round(quartiles[0],2)}')
   # print(f'Median: {round(quartiles[1],2)}')

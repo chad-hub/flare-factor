@@ -35,7 +35,7 @@ def s3_to_df(bucket_name, filename_1, filename_2, cols_1, cols_2,
 
   '''
   s3 = boto3.client('s3') #establish boto3
-  if chunk_data:
+  if chunk_data: # if memory + processing power is a concern
     df_list_1, df_list_2  = [], []
 
     for df_chunk_1 in tqdm(pd.read_csv('s3://'+bucket_name+'/'+filename_1,
@@ -72,13 +72,14 @@ def merge_dfs(df1, df2):
   df = df1.merge(df2, how='left', on=['DISTRICT_NO', 'LEASE_NO',
                                        'CYCLE_YEAR', 'CYCLE_MONTH',
                                        'OPERATOR_NO', 'OPERATOR_NAME'])
-  # df = df.reindex(columns=['DISTRICT_NO', 'LEASE_NO', 'CYCLE_MONTH', 'CYCLE_YEAR'
-  #                         'OPERATOR_NO', 'OPERATOR_NAME',
-  #                         'LEASE_OIL_PROD_VOL', 'LEASE_GAS_PROD_VOL',
-  #                         'LEASE_COND_PROD_VOL', 'LEASE_CSGD_PROD_VOL',
-  #                          'GAS_FLARED', 'CASINGHEAD_GAS_FLARED',
-  #                          'TOTAL_LEASE_FLARE_VOL' ])
   df = feature_engineer(df)
+  df = df.reindex(columns=['DISTRICT_NO', 'LEASE_NO', 'CYCLE_YEAR', 'CYCLE_MONTH', 'OPERATOR_NO',
+        'OPERATOR_NAME', 'LEASE_OIL_PROD_VOL', 'LEASE_GAS_PROD_VOL', 'LEASE_COND_PROD_VOL',
+        'LEASE_CSGD_PROD_VOL', 'GAS_FLARED', 'CASINGHEAD_GAS_FLARED',
+        'TOTAL_LEASE_FLARE_VOL', 'FIRST_REPORT', 'LAST_REPORT',
+        'REPORT_DATE', 'MONTHS_FROM_FIRST_REPORT',
+        'OIL_ENERGY (GWH)', 'GAS_ENERGY (GWH)', 'CSGD_ENERGY (GWH)',
+        'COND_ENERGY (GWH)', 'FLARE_ENERGY (GWH)', 'TOTAL_ENERGY_PROD (GWH)'])
   return df
 
 
@@ -105,10 +106,11 @@ def feature_engineer(chunk):
   ## Rename columns for easier ID
   chunk.rename(columns={'LEASE_CSGD_DISPCDE04_VOL': 'CASINGHEAD_GAS_FLARED', 'LEASE_GAS_DISPCD04_VOL':'GAS_FLARED'}, inplace=True)
   chunk['TOTAL_LEASE_FLARE_VOL'] = chunk['CASINGHEAD_GAS_FLARED'] + chunk['GAS_FLARED']
-  #
+  ## Determine first report date for each lease
   chunk_min = chunk.groupby(['LEASE_NO'])['CYCLE_YEAR', 'CYCLE_MONTH'].min().reset_index()
   chunk_min['FIRST_REPORT'] = chunk_min['CYCLE_MONTH'].map(str) + '-' + chunk_min['CYCLE_YEAR'].map(str)
   chunk_min['FIRST_REPORT'] = pd.to_datetime(chunk_min['FIRST_REPORT'], yearfirst=False, format='%m-%Y').dt.to_period('M')
+  ## Determine last report date for each lease
   chunk_max = chunk.groupby(['LEASE_NO'])['CYCLE_YEAR', 'CYCLE_MONTH'].max().reset_index()
   chunk_max['LAST_REPORT'] = chunk_max['CYCLE_MONTH'].map(str) + '-' + chunk_max['CYCLE_YEAR'].map(str)
   chunk_max['LAST_REPORT'] = pd.to_datetime(chunk_max['LAST_REPORT'], yearfirst=False, format='%m-%Y').dt.to_period('M')
@@ -116,10 +118,12 @@ def feature_engineer(chunk):
   del chunk_min
   chunk = pd.merge_ordered(chunk, chunk_max[['LEASE_NO', 'LAST_REPORT']], on=['LEASE_NO'], how='left')
   del chunk_max
+  ## Establish report date as datetime for each lease
   chunk['REPORT_DATE'] = chunk['CYCLE_MONTH'].map(str) + '-' + chunk['CYCLE_YEAR'].map(str)
   chunk['REPORT_DATE'] = pd.to_datetime(chunk['REPORT_DATE'], yearfirst=False, format='%m-%Y').dt.to_period('M')
+  ## Create months fron first report feature, capturing the decay component of production
   chunk['MONTHS_FROM_FIRST_REPORT'] = chunk['REPORT_DATE'].astype('int') - chunk['FIRST_REPORT'].astype('int')
-
+  ## Convert volume data to standardized energy units
   chunk['OIL_ENERGY (GWH)'] = (chunk['LEASE_OIL_PROD_VOL'] * oil_kwh) / 1000000
   chunk['GAS_ENERGY (GWH)'] = (chunk['LEASE_GAS_PROD_VOL'] * gas_kwh) / 1000000
   chunk['CSGD_ENERGY (GWH)'] = (chunk['LEASE_CSGD_PROD_VOL'] * gas_kwh) / 1000000
@@ -129,30 +133,12 @@ def feature_engineer(chunk):
                                       chunk['CSGD_ENERGY (GWH)'] +
                                       chunk['GAS_ENERGY (GWH)'] +
                                       chunk['OIL_ENERGY (GWH)'])
-
   return chunk
-
-
-# %%
-
-# %%
-# merged_df = merged_df.
-
-# test = pd.to_datetime(df['CYCLE_YEAR_MONTH'], yearfirst=True, format='%Y%m') + MonthEnd()
-
-# # %%
-# df_districts = df.groupby(['DISTRICT_NO', 'YEAR'])['LEASE_OIL_PROD_VOL',
-#                             'LEASE_GAS_PROD_VOL',
-#                             'LEASE_COND_PROD_VOL',
-#                             'LEASE_CSGD_PROD_VOL',
-#                             'TOTAL_LEASE_FLARE_VOL'].sum().reset_index()
 
 # %%
 
 # %%
 if __name__ == '__main__':
-
-  # spark = SparkSession.builder.getOrCreate()
 
   flare_cols = ['DISTRICT_NO', 'LEASE_NO', 'CYCLE_YEAR' , 'CYCLE_MONTH',
                     'OPERATOR_NO','OPERATOR_NAME',
@@ -163,68 +149,11 @@ if __name__ == '__main__':
                     'LEASE_GAS_PROD_VOL', 'LEASE_COND_PROD_VOL',
                     'LEASE_CSGD_PROD_VOL']
 
-  # flare_df = s3_to_df('cbh-capstone1-texasrrc',
-  #                   'OG_LEASE_CYCLE_DISP_DATA_TABLE.dsv', flare_cols,
-  #                   chunk_data=True, chunksize=15000000, year=2020)
-
-  # prod_df = s3_to_df('cbh-capstone1-texasrrc',
-  #                   'OG_LEASE_CYCLE_DATA_TABLE.dsv', prod_cols,
-  #                   chunk_data=True, chunksize=15000000, year=2020)
-
-  # df = merge_dfs(flare_df, prod_df)
-
-  # del flare_df
-  # del prod_df
-
-  # df = feature_engineer(df)
 
   df = s3_to_df('cbh-capstone1-texasrrc',
                 'OG_LEASE_CYCLE_DISP_DATA_TABLE.dsv',
                 'OG_LEASE_CYCLE_DATA_TABLE.dsv',
                 flare_cols, prod_cols,
-                chunk_data=True, chunksize=15000000, year=2020)
-
-
-
-# %%
-
-# %%
-
-
-# # %%
-# f_path = 's3://cbh-capstone1-texasrrc/OG_LEASE_CYCLE_DISP_DATA_TABLE.dsv'
-# p_path = 's3://cbh-capstone1-texasrrc/OG_LEASE_CYCLE_DATA_TABLE.dsv'
-
-# %%
-
-# %%
-lease_df_min = df.groupby(['LEASE_NO'])['CYCLE_YEAR', 'CYCLE_MONTH'].min().reset_index()
-lease_df_min['FIRST_REPORT'] = lease_df_min['CYCLE_MONTH'].map(str) + '-' + lease_df_min['CYCLE_YEAR'].map(str)
-lease_df_min['FIRST_REPORT'] = pd.to_datetime(lease_df_min['FIRST_REPORT'], yearfirst=False, format='%m-%Y').dt.to_period('M')
-lease_df_min.head()
-# %%
-lease_df_max = df.groupby(['LEASE_NO'])['CYCLE_YEAR', 'CYCLE_MONTH'].max().reset_index()
-lease_df_max['LAST_REPORT'] = lease_df_max['CYCLE_MONTH'].map(str) + '-' + lease_df_max['CYCLE_YEAR'].map(str)
-lease_df_max['LAST_REPORT'] = pd.to_datetime(lease_df_max['LAST_REPORT'], yearfirst=False, format='%m-%Y').dt.to_period('M')
-lease_df_max.head()
-
-# %%
-df = pd.merge_ordered(df, lease_df_min[['LEASE_NO', 'FIRST_REPORT']], on=['LEASE_NO'], how='left')
-# %%
-df = pd.merge_ordered(df, lease_df_max[['LEASE_NO', 'LAST_REPORT']], on=['LEASE_NO'], how='left')
-
-# %%
-df['REPORT_DATE'] = df['CYCLE_MONTH'].map(str) + '-' + df['CYCLE_YEAR'].map(str)
-df['REPORT_DATE'] = pd.to_datetime(df['REPORT_DATE'], yearfirst=False, format='%m-%Y').dt.to_period('M')
-# %%
-# %%
-df['MONTHS_FROM_FIRST_REPORT'] = df['REPORT_DATE'].astype('int') - df['FIRST_REPORT'].astype('int')
-df.info()
-# %%
-df.columns
-# %%
-df.drop(['LAST_REPORT_x','LAST_REPORT_y','FIRST_PROD_REPORT'], axis=1, inplace=True)
-df.head()
-# %%
-
+                chunk_data=True, chunksize=15000000, year=2019)
+  pd.to_pickle(df, 's3://cbh-capstone1-texasrrc/clean_df.pkl')
 # %%
