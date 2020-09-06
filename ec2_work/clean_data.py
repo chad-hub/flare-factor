@@ -125,10 +125,10 @@ def feature_engineer(chunk):
   chunk['CSGD_ENERGY (GWH)'] = (chunk['LEASE_CSGD_PROD_VOL'] * gas_kwh) / 1000000
   chunk['COND_ENERGY (GWH)'] = (chunk['LEASE_COND_PROD_VOL'] * cond_kwh) / 1000000
   chunk['FLARE_ENERGY (GWH)'] = (chunk['TOTAL_LEASE_FLARE_VOL'] * gas_kwh) / 1000000
-  chunk['TOTAL_ENERGY_PROD (GWH)'] = (chunk['LEASE_COND_PROD_ENERGY (GWH)'] +
-                                      chunk['LEASE_CSGD_PROD_ENERGY (GWH)'] +
-                                      chunk['LEASE_GAS_PROD_ENERGY (GWH)'] +
-                                      chunk['LEASE_OIL_PROD_ENERGY (GWH)'])
+  chunk['TOTAL_ENERGY_PROD (GWH)'] = (chunk['COND_ENERGY (GWH)'] +
+                                      chunk['CSGD_ENERGY (GWH)'] +
+                                      chunk['GAS_ENERGY (GWH)'] +
+                                      chunk['OIL_ENERGY (GWH)'])
 
   return chunk
 
