@@ -39,7 +39,7 @@ def s3_to_df(bucket_name, filename_1, filename_2, cols_1, cols_2,
     df_list_1, df_list_2  = [], []
 
     for df_chunk_1 in tqdm(pd.read_csv('s3://'+bucket_name+'/'+filename_1,
-                            delimiter='}', chunksize=chunksize, usecols=cols_1)):
+                            delimiter='}', chunksize=chunksize, usecols=cols_1, )):
       df_chunk_1 = df_chunk_1[df_chunk_1['CYCLE_YEAR'] >= year]
       df_list_1.append(df_chunk_1)
     df_1 = pd.concat(df_list_1)
