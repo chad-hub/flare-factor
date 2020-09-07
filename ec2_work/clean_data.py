@@ -8,6 +8,7 @@ import s3fs
 import numpy as np
 from tqdm import tqdm
 import dask.dataframe as dd
+import oil_price
 
 # import pyspark
 # from pyspark.sql import SparkSession
@@ -133,6 +134,9 @@ def feature_engineer(df):
                                       df['CSGD_ENERGY (GWH)'] +
                                       df['GAS_ENERGY (GWH)'] +
                                       df['OIL_ENERGY (GWH)'])
+
+  oil_price = oil_price()
+  df = df.merge(oil_price, how='left', on=['CYCLE_YEAR', 'CYCLE_MONTH'])
   return df
 
 # %%
