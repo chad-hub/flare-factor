@@ -27,14 +27,9 @@ plt.style.use('ggplot')
 pd.plotting.register_matplotlib_converters()
 
 # %%
+s3 = boto3.client('s3')
 df = pd.read_pickle('s3://cbh-capstone1-texasrrc/clean_df.pkl')
 
-# %%
-df.head()
-
-# %%
-df = clean_data.main()
-df.info()
 # %%
 
 def plot_districts(data):
