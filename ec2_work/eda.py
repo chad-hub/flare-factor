@@ -13,15 +13,18 @@ import io
 import boto3
 import os
 import s3fs
+from tqdm import tqdm
 
 import clean_data
 
 %matplotlib inline
 from pandas.plotting import register_matplotlib_converters
+from matplotlib.font_manager import FontProperties
 register_matplotlib_converters()
 matplotlib.rcParams['figure.figsize'] = (12,8)
 sns.set(font_scale=1.5, style="whitegrid")
 plt.style.use('ggplot')
+pd.plotting.register_matplotlib_converters()
 
 # %%
 df = pd.read_pickle('s3://cbh-capstone1-texasrrc/clean_df.pkl')
@@ -32,64 +35,43 @@ df = clean_data.main()
 df.info()
 # %%
 
-df_dist = df.groupby(['DISTRICT_NO', 'REPORT_DATE'])[
-                'LEASE_OIL_PROD_VOL', 'LEASE_GAS_PROD_VOL',
-                'LEASE_COND_PROD_VOL','LEASE_CSGD_PROD_VOL',
-                'TOTAL_LEASE_FLARE_VOL'].sum().reset_index()
-
-# pd.to_datetime(df_dist['REPORT_DATE'].apply(lambda x: x.to_timestamp()))
-df_dist.set_index('REPORT_DATE', inplace=True)
-# plt.plot(df_dist['TOTAL_LEASE_FLARE_VOL'], )
-df_dist.head()
-# %%
-
 def plot_districts(data):
-  df_dist = data.groupby(['DISTRICT_NO', 'REPORT_DATE'])[
-                'LEASE_OIL_PROD_VOL', 'LEASE_GAS_PROD_VOL',
-                'LEASE_COND_PROD_VOL','LEASE_CSGD_PROD_VOL',
-                'TOTAL_LEASE_FLARE_VOL'].sum().reset_index()
+  df_dist = df.groupby(['DISTRICT_NO', 'REPORT_DATE'])['TOTAL_LEASE_FLARE_VOL',
+            'LEASE_OIL_PROD_VOL', 'LEASE_CSGD_PROD_VOL', 'LEASE_GAS_PROD_VOL'].sum().reset_index()
 
-  # df_dist['REPORT_DATE'] = df_dist['REPORT_DATE'].to_timestamp(freq='M')
-  # df_dist.set_index('REPORT_DATE', inplace=True)
+  df_dist['REPORT_DATE'] = df_dist['REPORT_DATE'].dt.to_timestamp()
+  x_vals = np.arange(0, len(df_dist[df_dist['DISTRICT_NO']==1]),1)
+  titles= ['Flare Volumes by District (MMcf)',
+          'Oil Production by District (bbl)',
+          'Gas Production by District (MMcf)',
+          'Flare Gas - Gas Production Ratio by District']
 
-  fig, ax = plt.subplots(5, 1)
+  y_vals = [df_dist['TOTAL_LEASE_FLARE_VOL'] / 1000,
+              df_dist['LEASE_OIL_PROD_VOL'] / 1000,
+              (df_dist['LEASE_CSGD_PROD_VOL'] +
+              df_dist['LEASE_GAS_PROD_VOL']) / 1000,
+              (df_dist['TOTAL_LEASE_FLARE_VOL'] /
+              df_dist['LEASE_CSGD_PROD_VOL'])]
 
-  a = sns.lineplot(x=df_dist['REPORT_DATE'],
-            y=df_dist['TOTAL_LEASE_FLARE_VOL'],
-            hue=df_dist['DISTRICT_NO'],
-            palette='coolwarm',
-            legend='full')
-  a.set_title('Flare Volumes by District')
+  y_labels = ['Volume FLared (MMcf)', 'Oil Produced (1000 bbl)',
+              'Gas Produced (MMcf)', 'Flare Gas to Produced Gas Ratio']
 
-  b = sns.lineplot(x=df_dist['REPORT_DATE'],
-            y=df_dist['LEASE_OIL_PROD_VOL'],
-            hue=df_dist['DISTRICT_NO'],
-            palette='coolwarm',
-            legend='full')
-  b.set_title('Oil Production by District')
-
-  c = sns.lineplot(x=df_dist['REPORT_DATE'],
-            y=(df_dist['LEASE_CSGD_PROD_VOL'] + df_dist['LEASE_GAS_PROD_VOL']),
-            hue=df_dist['DISTRICT_NO'],
-            palette='coolwarm',
-            legend='full')
-  c.set_title('Gas Production by District')
-
-  d = sns.lineplot(x=df_dist['REPORT_DATE'],
-            y=(df_dist['TOTAL_LEASE_FLARE_VOL'] / df_dist['LEASE_CSGD_PROD_VOL']),
-            hue=df_dist['DISTRICT_NO'],
-            palette='coolwarm',
-            legend='full')
-  d.set_title('Flare Gas - Gas Production Ratio by District')
-
-  e = sns.lineplot(x=df_dist['REPORT_DATE'],
-            y=(df_dist['TOTAL_LEASE_FLARE_VOL'] / df_dist['LEASE_OIL_PROD_VOL']),
-            hue=df_dist['DISTRICT_NO'],
-            palette='coolwarm',
-            legend='full')
-  e.set_title('Flare Gas - Oil Production Ratio by District')
-
-  plt.show(a) , plt.show(b), plt.show(c), plt.show(d), plt.show(e)
+  for title, y, y_label in zip(titles, y_vals, y_labels):
+    fig = plt.figure(1)
+    ax = fig.add_subplot(111)
+    sns.lineplot(x=df_dist['REPORT_DATE'],y=y,
+                hue=df_dist['DISTRICT_NO'],palette='deep',
+                legend='full')
+    plt.title(title)
+    plt.grid(True)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left',
+            borderaxespad=0.)
+    ax.set_xticklabels(labels=df_dist['REPORT_DATE'].dt.to_period('M'),
+                      rotation = 45,
+                      ha='right')
+    ax.set_ylabel(y_label)
+    plt.show()
+  plt.tight_layout()
 
 # %%
 plot_districts(df)
