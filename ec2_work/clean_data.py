@@ -84,7 +84,7 @@ def merge_dfs(df1, df2):
 
 
 # %%
-def feature_engineer(chunk):
+def feature_engineer(df):
   '''
   Create features: months from first production / flare report,
   convert produced volumes to energy
@@ -104,36 +104,36 @@ def feature_engineer(chunk):
   gas_kwh = 293
   cond_kwh = 1589
   ## Rename columns for easier ID
-  chunk.rename(columns={'LEASE_CSGD_DISPCDE04_VOL': 'CASINGHEAD_GAS_FLARED', 'LEASE_GAS_DISPCD04_VOL':'GAS_FLARED'}, inplace=True)
-  chunk['TOTAL_LEASE_FLARE_VOL'] = chunk['CASINGHEAD_GAS_FLARED'] + chunk['GAS_FLARED']
+  df.rename(columns={'LEASE_CSGD_DISPCDE04_VOL': 'CASINGHEAD_GAS_FLARED', 'LEASE_GAS_DISPCD04_VOL':'GAS_FLARED'}, inplace=True)
+  df['TOTAL_LEASE_FLARE_VOL'] = dfk['CASINGHEAD_GAS_FLARED'] + df['GAS_FLARED']
   ## Determine first report date for each lease
-  chunk_min = chunk.groupby(['LEASE_NO'])['CYCLE_YEAR', 'CYCLE_MONTH'].min().reset_index()
-  chunk_min['FIRST_REPORT'] = chunk_min['CYCLE_MONTH'].map(str) + '-' + chunk_min['CYCLE_YEAR'].map(str)
-  chunk_min['FIRST_REPORT'] = pd.to_datetime(chunk_min['FIRST_REPORT'], yearfirst=False, format='%m-%Y').dt.to_period('M')
+  df_min = df.groupby(['LEASE_NO'])['CYCLE_YEAR', 'CYCLE_MONTH'].min().reset_index()
+  df_min['FIRST_REPORT'] = df_min['CYCLE_MONTH'].map(str) + '-' + df_min['CYCLE_YEAR'].map(str)
+  df_min['FIRST_REPORT'] = pd.to_datetime(df_min['FIRST_REPORT'], yearfirst=False, format='%m-%Y').dt.to_period('M')
   ## Determine last report date for each lease
-  chunk_max = chunk.groupby(['LEASE_NO'])['CYCLE_YEAR', 'CYCLE_MONTH'].max().reset_index()
-  chunk_max['LAST_REPORT'] = chunk_max['CYCLE_MONTH'].map(str) + '-' + chunk_max['CYCLE_YEAR'].map(str)
-  chunk_max['LAST_REPORT'] = pd.to_datetime(chunk_max['LAST_REPORT'], yearfirst=False, format='%m-%Y').dt.to_period('M')
-  chunk = pd.merge_ordered(chunk, chunk_min[['LEASE_NO', 'FIRST_REPORT']], on=['LEASE_NO'], how='left')
-  del chunk_min
-  chunk = pd.merge_ordered(chunk, chunk_max[['LEASE_NO', 'LAST_REPORT']], on=['LEASE_NO'], how='left')
-  del chunk_max
+  df_max = df.groupby(['LEASE_NO'])['CYCLE_YEAR', 'CYCLE_MONTH'].max().reset_index()
+  df_max['LAST_REPORT'] = df_max['CYCLE_MONTH'].map(str) + '-' + df_max['CYCLE_YEAR'].map(str)
+  df_max['LAST_REPORT'] = pd.to_datetime(df_max['LAST_REPORT'], yearfirst=False, format='%m-%Y').dt.to_period('M')
+  df = pd.merge_ordered(df, df_min[['LEASE_NO', 'FIRST_REPORT']], on=['LEASE_NO'], how='left')
+  del df_min
+  df = pd.merge_ordered(df, df_max[['LEASE_NO', 'LAST_REPORT']], on=['LEASE_NO'], how='left')
+  del df_max
   ## Establish report date as datetime for each lease
-  chunk['REPORT_DATE'] = chunk['CYCLE_MONTH'].map(str) + '-' + chunk['CYCLE_YEAR'].map(str)
-  chunk['REPORT_DATE'] = pd.to_datetime(chunk['REPORT_DATE'], yearfirst=False, format='%m-%Y').dt.to_period('M')
+  df['REPORT_DATE'] = df['CYCLE_MONTH'].map(str) + '-' + df['CYCLE_YEAR'].map(str)
+  df['REPORT_DATE'] = pd.to_datetime(df['REPORT_DATE'], yearfirst=False, format='%m-%Y').dt.to_period('M')
   ## Create months fron first report feature, capturing the decay component of production
-  chunk['MONTHS_FROM_FIRST_REPORT'] = chunk['REPORT_DATE'].astype('int') - chunk['FIRST_REPORT'].astype('int')
+  df['MONTHS_FROM_FIRST_REPORT'] = df['REPORT_DATE'].astype('int') - df['FIRST_REPORT'].astype('int')
   ## Convert volume data to standardized energy units
-  chunk['OIL_ENERGY (GWH)'] = (chunk['LEASE_OIL_PROD_VOL'] * oil_kwh) / 1000000
-  chunk['GAS_ENERGY (GWH)'] = (chunk['LEASE_GAS_PROD_VOL'] * gas_kwh) / 1000000
-  chunk['CSGD_ENERGY (GWH)'] = (chunk['LEASE_CSGD_PROD_VOL'] * gas_kwh) / 1000000
-  chunk['COND_ENERGY (GWH)'] = (chunk['LEASE_COND_PROD_VOL'] * cond_kwh) / 1000000
-  chunk['FLARE_ENERGY (GWH)'] = (chunk['TOTAL_LEASE_FLARE_VOL'] * gas_kwh) / 1000000
-  chunk['TOTAL_ENERGY_PROD (GWH)'] = (chunk['COND_ENERGY (GWH)'] +
-                                      chunk['CSGD_ENERGY (GWH)'] +
-                                      chunk['GAS_ENERGY (GWH)'] +
-                                      chunk['OIL_ENERGY (GWH)'])
-  return chunk
+  df['OIL_ENERGY (GWH)'] = (df['LEASE_OIL_PROD_VOL'] * oil_kwh) / 1000000
+  df['GAS_ENERGY (GWH)'] = (df['LEASE_GAS_PROD_VOL'] * gas_kwh) / 1000000
+  df['CSGD_ENERGY (GWH)'] = (df['LEASE_CSGD_PROD_VOL'] * gas_kwh) / 1000000
+  df['COND_ENERGY (GWH)'] = (df['LEASE_COND_PROD_VOL'] * cond_kwh) / 1000000
+  df['FLARE_ENERGY (GWH)'] = (df['TOTAL_LEASE_FLARE_VOL'] * gas_kwh) / 1000000
+  df['TOTAL_ENERGY_PROD (GWH)'] = (df['COND_ENERGY (GWH)'] +
+                                      df['CSGD_ENERGY (GWH)'] +
+                                      df['GAS_ENERGY (GWH)'] +
+                                      df['OIL_ENERGY (GWH)'])
+  return df
 
 # %%
 

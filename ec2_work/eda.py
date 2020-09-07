@@ -28,6 +28,8 @@ pd.plotting.register_matplotlib_converters()
 
 # %%
 df = pd.read_pickle('s3://cbh-capstone1-texasrrc/clean_df.pkl')
+
+# %%
 df.head()
 
 # %%
@@ -76,51 +78,6 @@ def plot_districts(data):
 # %%
 plot_districts(df)
 # %%
-b = sns.pairplot(df_dist_year.loc[:,['DISTRICT_NO','LEASE_OIL_PROD_VOL',
-                            'LEASE_GAS_PROD_VOL',
-                            'LEASE_COND_PROD_VOL',
-                            'LEASE_CSGD_PROD_VOL',
-                            'TOTAL_LEASE_FLARE_VOL']],
-                  hue = 'DISTRICT_NO',
-                  palette='coolwarm')
-
-# %%
-c = sns.lineplot(x=df_2008_plus['YEAR'],
-            y=df_2008_plus['TOTAL_LEASE_FLARE_VOL'],
-            hue=df_2008_plus['DISTRICT_NO'],
-            palette='coolwarm',
-            legend='full'
-            )
-c.set_title('Flare Volumes by District (2008-2019)')
-# %%
-df_2008_plus.head()
-# %%
-d = sns.lineplot(x=df_2007_less['YEAR'],
-            y=df_2007_less['TOTAL_LEASE_FLARE_VOL'],
-            hue=df_2007_less['DISTRICT_NO'],
-            palette='coolwarm',
-            legend='full'
-            )
-d.set_title('Flare Volumes by District (1993-2008)')
-# %%
-
-# %%
-
-# %%
-df_2000_plus.drop(['CYCLE_YEAR_MONTH', 'OPERATOR_NO_y', 'OPERATOR_NAME_y'], axis=1, inplace=True)
-# %%
-df_2000_plus.columns
-# %%
-df_2000_plus = df_2000_plus[['DISTRICT_NO', 'LEASE_NO',
-                              'MONTH', 'YEAR','OPERATOR_NO_x',
-                              'OPERATOR_NAME_x', 'LEASE_OIL_PROD_VOL',
-                              'LEASE_GAS_PROD_VOL', 'LEASE_COND_PROD_VOL',
-                              'LEASE_CSGD_PROD_VOL', 'GAS_FLARED',
-                              'CASINGHEAD_GAS_FLARED', 'TOTAL_LEASE_FLARE_VOL' ]]
-# %%
-df_2000_plus.to_pickle('2000_plus_full.pkl')
-# %%
-df_2000_plus.head()
 
 # %%
 oil_price = pd.read_csv('price_of_oil.csv', )
