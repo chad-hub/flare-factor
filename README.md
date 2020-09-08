@@ -7,5 +7,9 @@ Flaring, the burning of natural gas that is more expensive to get to market than
 
 ## The Tech
 
+![Tech Stack](ec2_work/plots/ff_tech.png)
+
 ## The Data
-As previously mentioned, the Texas Railraod Commission (TRRC) dumps all the data they collect monthly. This amounts to about 135,000 reports monthy in 2019/2020 from all active leases in Texas. The unzipped dataset exceeds 25 GB, and contains upwards of 65,000,000 entries for production and ~35,000,000 entries that contain information on flaring, dating back to 1993. After initally reading 
+As previously mentioned, the Texas Railraod Commission (TRRC) dumps all the data they collect monthly. This amounts to about 135,000 reports monthy in 2019/2020 from all active leases in Texas. The unzipped dataset exceeds 25 GB, and contains upwards of 65,000,000 entries for production and ~35,000,000 entries that contain information on flaring, dating back to 1993. After initally reading in the full dataset, I determine that there was a good reason to ignore pre-2000 data, as there is a clear departure from what was the normal in 2010, made evident in the plot below. 
+
+![Flaring_district_full](ec2_work/plots/flare_by_district.png)
