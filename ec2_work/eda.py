@@ -73,24 +73,111 @@ def plot_districts(data):
 # %%
 plot_districts(df)
 # %%
+def oil_price_plotting(df):
+  oil_price = pd.read_csv('s3://cbh-capstone1-texasrrc/price_of_oil.csv', index_col=0)
+  df = pd.merge_ordered(df, oil_price, on=['CYCLE_MONTH', 'CYCLE_YEAR'], how='left')
+  df_dist = df.groupby(['DISTRICT_NO', 'REPORT_DATE', 'OIL_PRICE'])['TOTAL_LEASE_FLARE_VOL',
+            'LEASE_OIL_PROD_VOL', 'LEASE_CSGD_PROD_VOL', 'LEASE_GAS_PROD_VOL'].sum().reset_index()
+  df_dist['REPORT_DATE'] = df_dist['REPORT_DATE'].dt.to_timestamp()
+  titles= ['Flare Volumes by District (MMcf)',
+          'Oil Production by District (bbl)',
+          'Gas Production by District (MMcf)',
+          'Flare Gas - Gas Production Ratio by District',
+          'Flare Gas - Oil Production Ratio by District']
+
+  y_vals = [df_dist['TOTAL_LEASE_FLARE_VOL'] / 1000,
+              df_dist['LEASE_OIL_PROD_VOL'] / 1000,
+              (df_dist['LEASE_CSGD_PROD_VOL'] +
+              df_dist['LEASE_GAS_PROD_VOL']) / 1000,
+              (df_dist['TOTAL_LEASE_FLARE_VOL'] /
+              (df_dist['LEASE_CSGD_PROD_VOL'] + df_dist['LEASE_GAS_PROD_VOL'])),
+              (df_dist['TOTAL_LEASE_FLARE_VOL'] /
+              df_dist['LEASE_OIL_PROD_VOL']) ]
+
+  y_labels = ['Volume FLared (MMcf)', 'Oil Produced (1000 bbl)',
+              'Gas Produced (MMcf)', 'Flare Gas to Produced Gas Ratio',
+              'Flare Gas to Oil Produced Ratio (Mcf / bbl)']
+
+  for title, y, y_label in zip(titles, y_vals, y_labels):
+    # x_vals = np.arange(0, len(df_dist['REPORT_DATE']),1)
+    fig = plt.figure(1)
+    ax = fig.add_subplot(111)
+    ax.set_xlim(df_dist['REPORT_DATE'].min(), df_dist['REPORT_DATE'].max())
+    sns.lineplot(x=df_dist['REPORT_DATE'],y=y,
+                hue=df_dist['DISTRICT_NO'],palette='deep',
+                legend='full')
+    ax2 = ax.twinx()
+    sns.lineplot(x=df_dist['REPORT_DATE'], y=df_dist['OIL_PRICE'], color='g',
+                  ax=ax2, style=True, dashes=[(2,2)], legend='brief')
+    plt.title(title)
+    plt.grid(True)
+    ax.legend(bbox_to_anchor=(1.1, 1), loc='upper left',
+            borderaxespad=0.)
+    ax2.legend(bbox_to_anchor=(1.1, 0.5), loc='lower left',
+            borderaxespad=0.)
+    ax2.legend(['Price of Oil'])
+    # ax.set_xticklabels(labels=df_dist['REPORT_DATE'].dt.to_period('Y'),
+                      # rotation = 45,
+                      # ha='right')
+    # ax2.set_xticklabels(labels=df_dist['REPORT_DATE'].dt.to_period('M'),
+                      # rotation = 45,
+                      # ha='right')
+    ax.set_ylabel(y_label)
+    plt.show()
+  plt.tight_layout()
 
 # %%
-oil_price = pd.read_csv('price_of_oil.csv', )
-# %%
-oil_price.drop('Unnamed: 0', axis=1, inplace=True)
-# %%
-oil_price['Month'] = pd.to_datetime(oil_price['Month'])
-oil_price['YEAR'] = oil_price['Month'].dt.year
-oil_price['MONTH'] = oil_price['Month'].dt.month
-# %%
-oil_price.drop('Month', axis=1, inplace=True)
-# %%
+oil_price_plotting(df)
 
 # %%
-df_2000_plus = pd.merge_ordered(df_2000_plus, oil_price, on=['YEAR', 'MONTH'], how='inner')
-# %%
-df_2000_plus.info()
+def district_boxplot(df):
+  df_dist = df.groupby(['DISTRICT_NO', 'REPORT_DATE'])['TOTAL_LEASE_FLARE_VOL',
+            'LEASE_OIL_PROD_VOL', 'LEASE_CSGD_PROD_VOL', 'LEASE_GAS_PROD_VOL'].sum().reset_index()
+  titles= ['Flare Volumes by District (MMcf)',
+          'Oil Production by District (bbl)',
+          'Gas Production by District (MMcf)',
+          'Flare Gas - Gas Production Ratio by District',
+          'Flare Gas - Oil Production Ratio by District']
 
+  y_vals = [df_dist['TOTAL_LEASE_FLARE_VOL'] / 1000,
+              df_dist['LEASE_OIL_PROD_VOL'] / 1000,
+              (df_dist['LEASE_CSGD_PROD_VOL'] +
+              df_dist['LEASE_GAS_PROD_VOL']) / 1000,
+              (df_dist['TOTAL_LEASE_FLARE_VOL'] /
+              (df_dist['LEASE_CSGD_PROD_VOL'] + df_dist['LEASE_GAS_PROD_VOL'])),
+              (df_dist['TOTAL_LEASE_FLARE_VOL'] /
+              df_dist['LEASE_OIL_PROD_VOL']) ]
+
+  y_labels = ['Volume FLared (MMcf)', 'Oil Produced (1000 bbl)',
+              'Gas Produced (MMcf)', 'Flare Gas to Produced Gas Ratio',
+              'Flare Gas to Oil Produced Ratio (Mcf / bbl)']
+
+  for title, y, y_label in zip(titles, y_vals, y_labels):
+    # x_vals = np.arange(0, len(df_dist['REPORT_DATE']),1)
+    fig = plt.figure(1)
+    ax = fig.add_subplot(111)
+    sns.boxplot(x=df_dist['DISTRICT_NO'],y=y, width=0.8,
+                hue=df_dist['DISTRICT_NO'],palette='deep', dodge=False)
+    plt.title(title)
+    plt.grid(True)
+    ax.legend(bbox_to_anchor=(1.1, 1), loc='upper left',
+            borderaxespad=0., title='DISTRICT_NO')
+    # ax.set_xlim(0, max(df_dist['DISTRICT_NO'].unique()))
+    # ax.set_xticklabels(labels=df_dist['DISTRICT_NO'].unique())
+    ax.set_ylabel(y_label)
+    # ax.set_xticks()
+    plt.savefig('boxplot'+ title)
+    plt.show()
+
+  plt.tight_layout()
+
+# %%
+district_boxplot(df)
+# %%
+
+df_dist = df.groupby(['DISTRICT_NO', 'REPORT_DATE'])['TOTAL_LEASE_FLARE_VOL',
+            'LEASE_OIL_PROD_VOL', 'LEASE_CSGD_PROD_VOL', 'LEASE_GAS_PROD_VOL'].sum().reset_index()
+df_dist['DISTRICT_NO'].unique()
 # %%
 operators_df = df_2000_plus.groupby(['OPERATOR_NAME_x', 'OPERATOR_NO_x'])['LEASE_NO'].count().reset_index()
 operators_df.head()
@@ -131,56 +218,8 @@ op_bins = pd.cut(operators_df['LEASE_NO'], bins=3, retbins=True)
 operators_df['FLARE-OIL-BBL RATIO'] = operators_df['TOTAL_LEASE_FLARE_VOL'] / operators_df['LEASE_OIL_PROD_VOL']
 # %%
 operators_df['AVG_FLARE_PER_LEASE'] = operators_df['TOTAL_LEASE_FLARE_VOL'] / operators_df['LEASE_NO']
-# %%
-operators_df.head()
-# %%
-lease_df = df_2000_plus.groupby(['LEASE_NO'])['YEAR', 'MONTH'].min().reset_index()
-# %%
-
-lease_df['MONTH_DT'] = (pd.to_datetime(lease_df['MONTH'], infer_datetime_format=False, format='%m'))
-lease_df['YEAR_DT'] = (pd.to_datetime(lease_df['YEAR'], infer_datetime_format=False, format='%Y'))
-# %%
-lease_df['FIRST_PROD_REPORT'] = lease_df['MONTH'].map(str) + '-' + lease_df['YEAR'].map(str)
-# %%
-lease_df['FIRST_PROD_REPORT'] = pd.to_datetime(lease_df['FIRST_PROD_REPORT'], yearfirst=False, format='%m-%Y').dt.to_period('M')
-# %%
-lease_df.head()
-# %%
-lease_df_max = df_2000_plus.groupby(['LEASE_NO'])['YEAR', 'MONTH'].max().reset_index()
-# %%
-lease_df_max['LAST_REPORT'] = lease_df_max['MONTH'].map(str) + '-' + lease_df_max['YEAR'].map(str)
-# %%
-lease_df_max['LAST_REPORT'] = pd.to_datetime(lease_df_max['LAST_REPORT'], yearfirst=False, format='%m-%Y').dt.to_period('M')
-# %%
-lease_df_max.head()
-# %%
-lease_df.head()
 
 # %%
-df_2000_plus = pd.read_pickle('2000_plus_full.pkl')
-# %%
-df_2000_plus = pd.merge_ordered(df_2000_plus, lease_df[['LEASE_NO', 'FIRST_PROD_REPORT']], on=['LEASE_NO'], how='left')
-# %%
-df_2000_plus = pd.merge_ordered(df_2000_plus, lease_df_max[['LEASE_NO', 'LAST_REPORT']], on=['LEASE_NO'], how='left')
-# %%
-
-# %%
-df_2000_plus['REPORT_DATE'] = df_2000_plus['MONTH'].map(str) + '-' + df_2000_plus['YEAR'].map(str)
-df_2000_plus['REPORT_DATE'] = pd.to_datetime(df_2000_plus['REPORT_DATE'], yearfirst=False, format='%m-%Y').dt.to_period('M')
-# %%
-df_2000_plus.info()
-# %%
-df_2000_plus.head()
-# %%
-df_2000_plus['MONTHS_FROM_FIRST_REPORT'] = df_2000_plus['REPORT_DATE'].astype('int') - df_2000_plus['FIRST_PROD_REPORT'].astype('int')
-# %%
-df_2000_plus.head()
-# %%
-df_2000_plus = pd.merge(df_2000_plus, oil_price, on=['YEAR', 'MONTH'], how='left')
-# %%
-pd.to_pickle(df_2000_plus, 'df_2020_plus_rptdate.pkl')
-# %%
-fig, axs = plt.subplots(2)
 
 axs[0] = sns.lineplot(x=df_2000_plus['YEAR'],
             y=(df_2000_plus['TOTAL_LEASE_FLARE_VOL'] / df_2000_plus['LEASE_OIL_PROD_VOL']),
@@ -203,42 +242,10 @@ dist_year_grouped = df_2000_plus.groupby(['DISTRICT_NO', 'YEAR','Price of Oil','
                             'LEASE_CSGD_PROD_VOL',
                             'TOTAL_LEASE_FLARE_VOL'].sum().reset_index()
 # %%
-## group operators and year, sum up total leases for year and other factors
-
-operators_df_year = df_2000_plus.groupby(['OPERATOR_NAME_x',
-                                          'OPERATOR_NO_x', 'YEAR']).agg({'LEASE_OIL_PROD_VOL': 'sum',
-                                                                          'LEASE_GAS_PROD_VOL': 'sum',
-                                                                          'LEASE_COND_PROD_VOL' : 'sum',
-                                                                          'LEASE_CSGD_PROD_VOL' : 'sum',
-                                                                          'TOTAL_LEASE_FLARE_VOL' : 'sum',
-                                                                          'LEASE_NO': 'count'}).reset_index()
 # %%
-operators_df_year.sort_values(by='YEAR')
-# %%
-year_arr = np.array(operators_df_year['YEAR'])
-lease_count_arr = np.array(operators_df_year['LEASE_NO'])
-# %%
-operators_df_year[operators_df_year['YEAR'] == 2000]
-# %%%
-# df_2000_plus.head()
-pd.to_pickle(df_2000_plus, 's3://cbh-capstone1-texasrrc/df_2000_plus.pkl')
-# %%
-# df_2000 = pd.read_pickle('s3://cbh-capstone1-texasrrc/df_2000_plus.pkl')
-df_2000 = pd.read_pickle('df_2000.pkl')
 
 # %%
-df_2000['WASTE_RATIO'].fillna(0)
-# %%
-df_district_yr = df_2000.groupby(['DISTRICT_NO', 'YEAR']).agg({
-                        'LEASE_OIL_PROD_VOL' : 'sum',
-                        'LEASE_GAS_PROD_VOL': 'sum',
-                        'LEASE_COND_PROD_VOL' : 'sum',
-                        'LEASE_CSGD_PROD_VOL' : 'sum',
-                        'TOTAL_LEASE_FLARE_VOL': 'sum',
-                        'LEASE_NO' : 'count',
-                        'Price of Oil' : 'mean'}).reset_index()
-# %%
-df_district_yr.head()
+
 # %%
 ratio = df_district_yr['TOTAL_LEASE_FLARE_VOL'] / df_district_yr['LEASE_OIL_PROD_VOL']
 g = sns.lineplot(x=df_district_yr['YEAR'], y=ratio,
@@ -265,21 +272,6 @@ df_2000['WASTE_RATIO'] = df_2000['LEASE_FLARE_ENERGY (GWH)'] / df_2000['TOTAL_EN
 inf_idx = np.where(df_2000['WASTE_RATIO'] == np.inf)[0]
 df_2000.drop(inf_idx, axis=0, inplace=True)
 # %%
-for d in districts:
-  num_bins = int(1 + 3.332*np.log(len(df_2000[df_2000['DISTRICT_NO'] == 1]['WASTE_RATIO'])))*2
-  j = sns.distplot(df_2000[df_2000['DISTRICT_NO'] == d]['WASTE_RATIO'] , kde=False, axlabel='Flare Ratio',
-                                   label=f'District {d}', norm_hist=True,
-                                   bins=num_bins)
-  j.set_title(f'District Waste Ratio Distribution', )
-  j.set(xlim=(-.01,0.2))
-  j.legend()
-plt.show(j)
-
-
-# %%
-
-
-
 # %%
 operators_df = df_2000.groupby(['OPERATOR_NO_x', 'OPERATOR_NAME_x']).agg({'TOTAL_ENERGY_PROD (GWH)' : 'sum',
                         'LEASE_FLARE_ENERGY (GWH)': 'sum',
@@ -385,24 +377,7 @@ plt.show()
 sns.distplot(samp_df['WASTE_RATIO'], kde=False, bins=25)
 
 # %%
-# stats = pd.DataFrame(index=['Overall'], columns=['Min', '25th', 'Median', '75th', 'Max', 'SD'])
-quartiles = np.percentile(df_2000['TOTAL_LEASE_FLARE_VOL'], [25,50,75])
-min_, max_ = df_2000['WASTE_RATIO'].min(), df_2000['WASTE_RATIO'].max()
-std_ = np.std(df_2000['WASTE_RATIO'])
-districts = [1,2,3,4,5,6,7,8,9,10,11,13,14]
-for d in districts:
-  quartiles = np.percentile(df_2000[df_2000['DISTRICT_NO']==d]['TOTAL_LEASE_FLARE_VOL'], [25,50,75])
-  min_, max_ = df_2000[df_2000['DISTRICT_NO']==d]['TOTAL_LEASE_FLARE_VOL'].min(), df_2000[df_2000['DISTRICT_NO']==d]['TOTAL_LEASE_FLARE_VOL'].max()
-  std_ = np.std(df_2000[df_2000['DISTRICT_NO']==d]['TOTAL_LEASE_FLARE_VOL'])
-  print(f'District {d}:{round(min_,4)},{round(quartiles[0],4)},{round(quartiles[1],4)}, {round(quartiles[2],4)}, {round(max_,4)}, STD: {round(std_,4)}')
-  print(df_2000[df_2000['DISTRICT_NO']==d]['TOTAL_LEASE_FLARE_VOL'].describe())
 
-  # print(f'Max: {round(max_,2)}')
-  # print(f'25th Percentile: {round(quartiles[0],2)}')
-  # print(f'Median: {round(quartiles[1],2)}')
-  # print(f'75th Percentile: {round(quartiles[2],2)}')
-  # print(f'Max: {round(max_,2)}')
-  # print(f'STD: {round(std_,2)}')
 # %%
 df_2000['WASTE_RATIO'].describe()
 # %%
@@ -418,4 +393,21 @@ worst_lease[['LEASE_NO', 'MONTH', 'YEAR', 'OPERATOR_NO_x', 'OPERATOR_NAME_x', 'L
 # %%
 largest_df.head()
 # %%
-df_2000.shape
+if __name__ == '__main__':
+  flare_cols = ['DISTRICT_NO', 'LEASE_NO', 'CYCLE_YEAR' , 'CYCLE_MONTH',
+                    'OPERATOR_NO','OPERATOR_NAME',
+                    'LEASE_CSGD_DISPCDE04_VOL', 'LEASE_GAS_DISPCD04_VOL']
+
+  prod_cols = ['DISTRICT_NO', 'LEASE_NO', 'CYCLE_YEAR' , 'CYCLE_MONTH',
+                    'OPERATOR_NO','OPERATOR_NAME', 'LEASE_OIL_PROD_VOL',
+                    'LEASE_GAS_PROD_VOL', 'LEASE_COND_PROD_VOL',
+                    'LEASE_CSGD_PROD_VOL']
+
+
+  data = clean_data.s3_to_df('cbh-capstone1-texasrrc',
+                'OG_LEASE_CYCLE_DISP_DATA_TABLE.dsv',
+                'OG_LEASE_CYCLE_DATA_TABLE.dsv',
+                flare_cols, prod_cols,
+                chunk_data=True, chunksize=15000000, year=2015)
+# %%
+data.head()
