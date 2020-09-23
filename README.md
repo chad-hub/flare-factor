@@ -49,11 +49,7 @@ While I will investigate flare volumes in an absolute sense (i.e pure flare volu
  ## EDA: Finding the Variance
  
  ### District Level
- 
- <p align="center"> 
-  <img src="ec2_work/plots/districts_colorsm.jpg" width="300" />
- </p>
- 
+  
 <p align="center"> 
   <img src="ec2_work/plots/second_pass/boxplotFlare Volumes by District (MMcf).png" width="475" /> 
 </p>
