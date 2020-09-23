@@ -50,6 +50,11 @@ While I will investigate flare volumes in an absolute sense (i.e pure flare volu
  
  ### District Level
  
+
+<p align="center">
+  <img src="ec2_work/plots/second_pass/boxplotFlare Volumes by District (MMcf).png" width="500" /> 
+</p>
+
 <p float="left">
   <img src="ec2_work/plots/second_pass/boxplotOil Production by District (bbl).png" width="500" /> 
   <img src="ec2_work/plots/second_pass/boxplotGas Production by District (MMcf).png" width="500" />
@@ -59,7 +64,6 @@ While I will investigate flare volumes in an absolute sense (i.e pure flare volu
   <img src="ec2_work/plots/second_pass/boxplotFlare Gas - Gas Production Ratio by District.png" width="500" />
 </p>
 
-## EDA
 
 
 
