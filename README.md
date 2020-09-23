@@ -38,6 +38,27 @@ I have a great deal of domain knowledge in the Oil & Gas industry, so I understo
 |Months from First Report| Tracking how many reporting periods have passed from first reporting production | Number of months | With this feature I wasnted to capture the effects of decaying production over time. I simply converted all month / year entries from type(int) to datetime, the subtracted the current report date from the first report date.|
 |Price of Oil | Dollars per Barrel in the given year / month | USD | Price of oil informs the oil produced. Oil produced informs the flaring volume. Created web scraping script to concatenate the year / month with the average price for the given cycle. Also includes availablility to include forecasted oil prices in the future. 
 
+## Data: Additional Considerations
+
+While I will investigate flare volumes in an absolute sense (i.e pure flare volume), it is important to understand that flaring only ocurrs becuase oil and gas are produced. If there is a lease that produces more oil than another one, it is likely that there will be more flaring. to account for this, I created some factors that will better depict the 'energy stewardship' of a particular lease. A few terms that will be introduced to account for this:
+  1. **Waste ratio**: This is a unit-less metric that will capture, from a pure chemical potential energy standpoint, how much energy (in kilo-watt of giga-watt hours) was vented or flared, over total energy produced (in kwH of Gwh) from a combinatino of oil, gas and condensate. 
+  2. **Flaring Intensity**: This will capture the flaring volume (Mcf) as a factor of oil produced (in bbl). Becuase oil production is the main target of production in Texas, it will weigh most geavily on the flaring volumes. 
+  
+  These ratios will illuminate areas that may flare less gas, but are in fact more wasteful as a factor of how much is produced. 
+  
+ ## EDA: Finding the Variance
+ 
+ ### District Level
+ 
+<p float="left">
+  <img src="ec2_work/plots/second_pass/boxplotOil Production by District (bbl).png" width="500" /> 
+  <img src="ec2_work/plots/second_pass/boxplotGas Production by District (MMcf).png" width="500" />
+</p>
+<p float="left">
+  <img src="ec2_work/plots/second_pass/boxplotFlare Gas - Oil Production Ratio by District.png" width="500" />
+  <img src="ec2_work/plots/second_pass/boxplotFlare Gas - Gas Production Ratio by District.png" width="500" />
+</p>
+
 ## EDA
 
 
