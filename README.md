@@ -50,9 +50,9 @@ While I will investigate flare volumes in an absolute sense (i.e pure flare volu
  
  ### District Level
  
-
-<p float="center">
-  <img src="ec2_work/plots/second_pass/boxplotFlare Volumes by District (MMcf).png" width="600" /> 
+<p float="left">
+  <img src="ec2_work/plots/districts_colorsm.jpg" width="500" /> 
+  <img src="ec2_work/plots/second_pass/boxplotFlare Volumes by District (MMcf).png" width="300" /> 
 </p>
 
 <p float="center">
