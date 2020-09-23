@@ -125,10 +125,12 @@ def price_concat(df1, df2, year):
   df.columns = ['CYCLE_YEAR', 'CYCLE_MONTH', 'OIL_PRICE']
   return df
 
-
-# %%
-if __name__ =='__main__':
+def main():
   oil_future_df = oil_futures()
   oil_past_df = oil_past()
   price_concat(oil_future_df, oil_past_df, 2010)
+
+# %%
+if __name__ =='__main__':
+  oil_df = main()
 # %%

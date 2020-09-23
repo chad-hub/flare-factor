@@ -27,14 +27,24 @@ plt.style.use('ggplot')
 pd.plotting.register_matplotlib_converters()
 
 # %%
-# s3 = boto3.client('s3')
-df = clean_data.main()
+s3 = boto3.client('s3')
+# df = clean_data.main()
 # %%
+df = pd.read_pickle('s3://cbh-capstone1-texasrrc/clean_df.pkl')
 df.head()
-
 # %%
 
 def plot_districts(data):
+  '''
+  Plots lineplots that focus on district by district compairson
+
+  Parameters:
+  Pandas dataframe
+
+  Returns:
+  None
+  '''
+
   df_dist = df.groupby(['DISTRICT_NO', 'REPORT_DATE'])['TOTAL_LEASE_FLARE_VOL',
             'LEASE_OIL_PROD_VOL', 'LEASE_CSGD_PROD_VOL', 'LEASE_GAS_PROD_VOL'].sum().reset_index()
 
@@ -76,6 +86,16 @@ def plot_districts(data):
 plot_districts(df)
 # %%
 def oil_price_plotting(df):
+  '''
+  Plots various ratios of production to flaring and oil price to
+  depict relationship between price, production and flaring.
+
+  Parameters:
+  Pandas dataframe
+
+  Returns:
+  None
+        '''
   oil_price = pd.read_csv('s3://cbh-capstone1-texasrrc/price_of_oil.csv', index_col=0)
   df = pd.merge_ordered(df, oil_price, on=['CYCLE_MONTH', 'CYCLE_YEAR'], how='left')
   df_dist = df.groupby(['DISTRICT_NO', 'REPORT_DATE', 'OIL_PRICE'])['TOTAL_LEASE_FLARE_VOL',
@@ -101,12 +121,11 @@ def oil_price_plotting(df):
               'Flare Gas to Oil Produced Ratio (Mcf / bbl)']
 
   for title, y, y_label in zip(titles, y_vals, y_labels):
-    # x_vals = np.arange(0, len(df_dist['REPORT_DATE']),1)
     fig = plt.figure(1)
     ax = fig.add_subplot(111)
     ax.set_xlim(df_dist['REPORT_DATE'].min(), df_dist['REPORT_DATE'].max())
     sns.lineplot(x=df_dist['REPORT_DATE'],y=y,
-                hue=df_dist['DISTRICT_NO'],palette='deep',
+                palette='deep',
                 legend='full')
     ax2 = ax.twinx()
     sns.lineplot(x=df_dist['REPORT_DATE'], y=df_dist['OIL_PRICE'], color='g',
@@ -118,12 +137,6 @@ def oil_price_plotting(df):
     ax2.legend(bbox_to_anchor=(1.1, 0.5), loc='lower left',
             borderaxespad=0.)
     ax2.legend(['Price of Oil'])
-    # ax.set_xticklabels(labels=df_dist['REPORT_DATE'].dt.to_period('Y'),
-                      # rotation = 45,
-                      # ha='right')
-    # ax2.set_xticklabels(labels=df_dist['REPORT_DATE'].dt.to_period('M'),
-                      # rotation = 45,
-                      # ha='right')
     ax.set_ylabel(y_label)
     plt.show()
   plt.tight_layout()
@@ -133,6 +146,14 @@ oil_price_plotting(df)
 
 # %%
 def district_boxplot(df):
+
+  '''Boxplots of range and IQR of vairous informative ratios
+        Parameters:
+        Pandas dataframe
+
+        Returns:
+        None
+   '''
   df_dist = df.groupby(['DISTRICT_NO', 'REPORT_DATE'])['TOTAL_LEASE_FLARE_VOL',
             'LEASE_OIL_PROD_VOL', 'LEASE_CSGD_PROD_VOL', 'LEASE_GAS_PROD_VOL'].sum().reset_index()
   titles= ['Flare Volumes by District (MMcf)',
@@ -155,7 +176,6 @@ def district_boxplot(df):
               'Flare Gas to Oil Produced Ratio (Mcf / bbl)']
 
   for title, y, y_label in zip(titles, y_vals, y_labels):
-    # x_vals = np.arange(0, len(df_dist['REPORT_DATE']),1)
     fig = plt.figure(1)
     ax = fig.add_subplot(111)
     sns.boxplot(x=df_dist['DISTRICT_NO'],y=y, width=0.8,
@@ -163,12 +183,9 @@ def district_boxplot(df):
     plt.title(title)
     plt.grid(True)
     ax.legend(bbox_to_anchor=(1.1, 1), loc='upper left',
-            borderaxespad=0., title='DISTRICT_NO')
-    # ax.set_xlim(0, max(df_dist['DISTRICT_NO'].unique()))
-    # ax.set_xticklabels(labels=df_dist['DISTRICT_NO'].unique())
+            borderaxespad=0., title='DISTRICT_NO').set_visible(False)
     ax.set_ylabel(y_label)
-    # ax.set_xticks()
-    plt.savefig('boxplot'+ title)
+    # plt.savefig('boxplot'+ title)
     plt.show()
 
   plt.tight_layout()
@@ -176,13 +193,28 @@ def district_boxplot(df):
 # %%
 district_boxplot(df)
 # %%
-
-df_dist = df.groupby(['DISTRICT_NO', 'REPORT_DATE'])['TOTAL_LEASE_FLARE_VOL',
+def county_eda(data):
+  county_df = data.groupby(['COUNTY_NAME', 'DISTRICT_NO', 'REPORT_DATE' ])['TOTAL_LEASE_FLARE_VOL',
             'LEASE_OIL_PROD_VOL', 'LEASE_CSGD_PROD_VOL', 'LEASE_GAS_PROD_VOL'].sum().reset_index()
-df_dist['DISTRICT_NO'].unique()
+  return county_df
 # %%
-operators_df = df_2000_plus.groupby(['OPERATOR_NAME_x', 'OPERATOR_NO_x'])['LEASE_NO'].count().reset_index()
-operators_df.head()
+test = county_eda(df)
+test.head()
+
+# %%
+test.info()
+# %%
+sns.countplot(y=test['LEASE_OIL_PROD_VOL'], data=test, hue=test['DISTRICT_NO'])
+
+
+
+
+
+
+
+
+
+
 # %%
 operators_df['LEASE_NO'].nlargest(100, keep='all')
 # %%
@@ -249,21 +281,7 @@ dist_year_grouped = df_2000_plus.groupby(['DISTRICT_NO', 'YEAR','Price of Oil','
 # %%
 
 # %%
-ratio = df_district_yr['TOTAL_LEASE_FLARE_VOL'] / df_district_yr['LEASE_OIL_PROD_VOL']
-g = sns.lineplot(x=df_district_yr['YEAR'], y=ratio,
-                  hue=df_district_yr['DISTRICT_NO'], palette='coolwarm',
-                  legend='full')
-g.set_title('Flare Vol per Oil Bbl Produced (2000-2020)')
-plt.show()
-h = sns.lineplot(x=df_district_yr['YEAR'], y=df_district_yr['Price of Oil'],
-                    )
-h.set_title('Price of Oil')
-plt.show()
 
-# %%
-districts = list(df_district_yr['DISTRICT_NO'].value_counts().index)
-df_district_yr['Flare-Oil Ratio'] = df_district_yr['TOTAL_LEASE_FLARE_VOL'] / df_district_yr['LEASE_OIL_PROD_VOL']
-df_district_yr[df_district_yr['DISTRICT_NO'] == 1].head()
 
 
 # %%
