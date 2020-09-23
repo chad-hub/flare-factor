@@ -26,15 +26,15 @@ I have a great deal of domain knowledge in the Oil & Gas industry, so I understo
 
 |Feature      | Description | Units   | Feature Engineering |
 | ----------- | ----------- |---------| ------------------- |
-|District     | TRRC Regional District | ID Number | Pulled straight from TRRC |
-|County       | Name and ID number of County in Texas | Name / ID Number | Pulled straight from TRRC |
-|Operator     | Name and ID number of the company listed as the Operator | Name / ID Number | Pulled straight from TRRC |
-|Lease        | ID number of lease | ID Number |  Pulled straight from TRRC |
+|District     | TRRC Regional District | ID Number | Pulled straight from TRRC. District is the highest level geographical category.|
+|County       | Name and ID number of County in Texas | Name / ID Number | Pulled straight from TRRC. Further classifies the lease geographically. |
+|Operator     | Name and ID number of the company listed as the Operator | Name / ID Number | Pulled straight from TRRC. Company reporting the production / flaring. |
+|Lease        | ID number of lease | ID Number |  Pulled straight from TRRC. Most granular geographical classification. Lease will be used to concatenate the lease location with the latitude / Longitude shape files.|
 |Oil Produced | Volume of oil produced on the lease in the given year / month | Barrel (bbl) |   Pulled straight from TRRC |
-|Gas Produced | Volume of natural gas produced on the lease in the given year / month | Thousand cubic feet (Mcf) |    Pulled straight from TRRC |
-|Casinghead  Gas Produced | Volume of casinghead gas produed on the lease in the given year / month | Thousand cubic feet (Mcf) |  Pulled straight from TRRC |
-|Condensate produced | Volume of condensate produced on the lease in the given year / month | Barrel (bbl) |    Pulled straight from TRRC |
-|Flaring Volume | Volume of gas flared or vented on the lease in the given year / month | thousand cubic feet (Mcf) |    Pulled straight from TRRC 
+|Gas Produced | Volume of natural gas produced on the lease in the given year / month | Thousand cubic feet (Mcf) |    Pulled straight from TRRC. natural gas withdrawn from the hydrocarbon reservoir |
+|Casinghead  Gas Produced | Volume of casinghead gas produed on the lease in the given year / month | Thousand cubic feet (Mcf) |  Pulled straight from TRRC. Natural gas produced along with crude oil from oil wells. It contains either dissolved or associated gas or both  |
+|Condensate produced | Volume of condensate produced on the lease in the given year / month | Barrel (bbl) |   Pulled straight from TRRC. Low-density mixture of hydrocarbon liquids that are present as gaseous components in the raw natural gas produced from the reservoir|
+|Flaring Volume | Volume of gas flared or vented on the lease in the given year / month | thousand cubic feet (Mcf) |    Pulled straight from TRRC. This is the amount of energy wasted, and the focus of this project |
 |Months from First Report| Tracking how many reporting periods have passed from first reporting production | Number of months | With this feature I wasnted to capture the effects of decaying production over time. I simply converted all month / year entries from type(int) to datetime, the subtracted the current report date from the first report date.|
 |Price of Oil | Dollars per Barrel in the given year / month | USD | Price of oil informs the oil produced. Oil produced informs the flaring volume. Created web scraping script to concatenate the year / month with the average price for the given cycle. Also includes availablility to include forecasted oil prices in the future. 
 
