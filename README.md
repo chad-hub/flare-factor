@@ -52,16 +52,16 @@ While I will investigate flare volumes in an absolute sense (i.e pure flare volu
  
 
 <p align="center">
-  <img src="ec2_work/plots/second_pass/boxplotFlare Volumes by District (MMcf).png" width="500" /> 
+  <img src="ec2_work/plots/second_pass/boxplotFlare Volumes by District (MMcf).png" width="600" /> 
 </p>
 
-<p float="left">
-  <img src="ec2_work/plots/second_pass/boxplotOil Production by District (bbl).png" width="500" /> 
-  <img src="ec2_work/plots/second_pass/boxplotGas Production by District (MMcf).png" width="500" />
+<p float="center">
+  <img src="ec2_work/plots/second_pass/boxplotOil Production by District (bbl).png" width="400" /> 
+  <img src="ec2_work/plots/second_pass/boxplotGas Production by District (MMcf).png" width="400" />
 </p>
-<p float="left">
-  <img src="ec2_work/plots/second_pass/boxplotFlare Gas - Oil Production Ratio by District.png" width="500" />
-  <img src="ec2_work/plots/second_pass/boxplotFlare Gas - Gas Production Ratio by District.png" width="500" />
+<p float="center">
+  <img src="ec2_work/plots/second_pass/boxplotFlare Gas - Oil Production Ratio by District.png" width="400" />
+  <img src="ec2_work/plots/second_pass/boxplotFlare Gas - Gas Production Ratio by District.png" width="400" />
 </p>
 
 
