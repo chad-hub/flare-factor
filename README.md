@@ -36,6 +36,7 @@ I have a great deal of domain knowledge in the Oil & Gas industry, so I understo
 |Condensate produced | Volume of condensate produced on the lease in the given year / month | Barrel (bbl) |    Pulled straight from TRRC |
 |Flaring Volume | Volume of gas flared or vented on the lease in the given year / month | thousand cubic feet (Mcf) |    Pulled straight from TRRC 
 |Months from First Report| Tracking how many reporting periods have passed from first reporting production | Number of months | With this feature I wasnted to capture the effects of decaying production over time. I simply converted all month / year entries from type(int) to datetime, the subtracted the current report date from the first report date.|
+|Price of Oil | Dollars per Barrel in the given year / month | USD | Price of oil informs the oil produced. Oil produced informs the flaring volume. Created web scraping script to concatenate the year / month with the average price for the given cycle. Also includes availablility to include forecasted oil prices in the future. 
 
 
 
