@@ -64,7 +64,20 @@ While I will investigate flare volumes in an absolute sense (i.e pure flare volu
   <img src="ec2_work/plots/second_pass/boxplotFlare Gas - Gas Production Ratio by District.png" width="475" />
 </p>
 
+### Follow the Money
 
+<p align="center"> 
+  <img src="ec2_work/plots/second_pass/flare_price.png" width="500" /> 
+</p>
 
+<p float="center">
+  <img src="ec2_work/plots/second_pass/oil_prd_price.png" width="475" /> 
+  <img src="ec2_work/plots/second_pass/gas_prd_price.png" width="475" />
+</p>
+
+<p float="center">
+  <img src="ec2_work/plots/second_pass/flare_oil_ratio.png" width="475" />
+  <img src="ec2_work/plots/second_pass/flare_gas_ratio_price.png" width="475" />
+</p>
 
 
