@@ -95,7 +95,31 @@ While I will investigate flare volumes in an absolute sense (i.e pure flare volu
 </p>
 
 ## Decay
+- To observe how decay effects produced energy and waste ratio, these plots capture a small sample of these values. 
+<p float="center"> 
+  <img src="ec2_work/plots/waste_months.jpg" width="500" />
+  <img src="ec2_work/plots/energy_months.jpg" width="500" />
+</p>
 
+## Model
+In picking a model to run to try to predict flaring volumes or energy wasted, there are a few important items to consider:
+  1) Flaring can often happen extremely randomly. If equipment fails and gas has noweher else to go, flaring will happen at a high rate until the equipment is fixed
+  2) There are millions of observations...any model will take a LONG time to train. 
+  3) While predicting how much gas is flared in any given month based on historical data is interesting, the likelihood that this will provide anything usable is low This is       becuase even if the model predicts well, it won't provide direct insight into the areas that will be flaring in the future. 
+
+I landed on using a Gradient Boosting model becuase I wanted an ensemble method tless prone to over-fitting (if possible), and the non-linearity of the data. The initial results were predictable. 
+
+<p align="center"> 
+  <img src="ec2_work/plots/gbr_staged_predict_0.1.png" width="500" /> 
+</p>
+ What we get is a VERY overfit model. No matter the amount of tweaking, the predictability of precise flaring volumes is not feasible. 
+ 
+ Best Results: 
+ **Train R2: 0.572**
+ **Test R2: 0.014**
+ 
+ ## Confounding Data
+ 
 
 
 
