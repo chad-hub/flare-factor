@@ -194,18 +194,40 @@ def district_boxplot(df):
 district_boxplot(df)
 # %%
 def county_eda(data):
-  county_df = data.groupby(['COUNTY_NAME', 'DISTRICT_NO', 'REPORT_DATE' ])['TOTAL_LEASE_FLARE_VOL',
-            'LEASE_OIL_PROD_VOL', 'LEASE_CSGD_PROD_VOL', 'LEASE_GAS_PROD_VOL'].sum().reset_index()
-  return county_df
+
+  county_df = data.groupby(['COUNTY_NAME', 'DISTRICT_NO'])['TOTAL_LEASE_FLARE_VOL',
+            'LEASE_OIL_PROD_VOL', 'LEASE_CSGD_PROD_VOL',
+            'LEASE_GAS_PROD_VOL'].sum().reset_index()
+  districts = list(np.unique(county_df['DISTRICT_NO']))
+  # fig, axes = plt.subplots(nrows=7, ncols=2, sharey=True)
+  # axes = axes.flatten()
+  for idx, d in enumerate(districts):
+    fig = plt.figure(1)
+    ax = fig.add_subplot(111)
+    df = county_df[county_df['DISTRICT_NO'] == d ]
+    df['ratio'] = df['TOTAL_LEASE_FLARE_VOL']
+    # df = df.groupby('COUNTY_NAME')['ratio'].sum().reset_index()
+    # y_vals = list(df['ratio'])
+    # x_labels = list(np.unique(df['COUNTY_NAME']))
+    sns.distplot((county_df['TOTAL_LEASE_FLARE_VOL'] / county_df['LEASE_OIL_PROD_VOL']).replace([np.inf], np.nan).dropna(how='all'), kde=False, norm_hist=True)
+    # axes[idx].set_xticklabels(x_labels, rotation='vertical')
+    # axes[idx].set_title('County Average Flaring Intensity'.format(d))
+    # sns.distplot((county_df.groupby('COUNTY_NAME')['TOTAL_LEASE_FLARE_VOL'].sum()))
+    plt.title(f'District {d} Flaring Itensity')
+    plt.show()
+
+  # .tight_layout(pad=50.0)
+
 # %%
-test = county_eda(df)
+county_eda(df)
+
+
+# %%
+test = df.groupby(['COUNTY_NAME'])['TOTAL_LEASE_FLARE_VOL',
+            'LEASE_OIL_PROD_VOL', 'LEASE_CSGD_PROD_VOL',
+            'LEASE_GAS_PROD_VOL'].sum().reset_index()
+# %%
 test.head()
-
-# %%
-test.info()
-# %%
-sns.countplot(y=test['LEASE_OIL_PROD_VOL'], data=test, hue=test['DISTRICT_NO'])
-
 
 
 
