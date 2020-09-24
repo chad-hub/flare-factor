@@ -227,7 +227,7 @@ gbr2.feature_importances_
 # %%
 fig, ax = plt.subplots()
 
-feature_importances = 100*gbr2.feature_importances_ 
+feature_importances = 100*gbr2.feature_importances_
 names = X.columns
 feature_importances, feature_names, feature_idxs = \
     zip(*sorted(zip(feature_importances, names, range(len(names)))))

@@ -165,7 +165,7 @@ def main():
   county_cols = ['DISTRICT_NO', 'LEASE_NO', 'CYCLE_YEAR' ,'CYCLE_MONTH',
                     'OPERATOR_NO','OPERATOR_NAME', 'COUNTY_NO',
                     'COUNTY_NAME']
-  s3_to_df('cbh-capstone1-texasrrc',
+  df = s3_to_df('cbh-capstone1-texasrrc',
                 'OG_LEASE_CYCLE_DISP_DATA_TABLE.dsv',
                 'OG_LEASE_CYCLE_DATA_TABLE.dsv',
                 'OG_COUNTY_LEASE_CYCLE_DATA_TABLE.dsv',
