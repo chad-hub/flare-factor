@@ -15,8 +15,9 @@ Flaring, the burning of natural gas that is more expensive to get to market than
 ## The Data
 As previously mentioned, the Texas Railraod Commission (TRRC) dumps all the data they collect monthly. This amounts to about 135,000 reports monthy in 2019/2020 from all active leases in Texas. The unzipped dataset exceeds 25 GB, and contains upwards of 65,000,000 entries for production and ~35,000,000 entries that contain information on flaring, dating back to 1993. After initally reading in the full dataset, I determined that there was a good reason to focus on 2010 - Present data, as there is a clear departure from what was the normal in 2010, made evident in the plot below. 
 
-<p align="center">
-  <img src="ec2_work/plots/flare_by_district.png" alt="drawing" width="700"/>
+<p float="center">
+  <img src="ec2_work/plots/districts_colorsm.jpg" alt="drawing" width="300"/>
+  <img src="ec2_work/plots/flare_by_district.png" alt="drawing" width="500"/>
 </p>
 
 The year 2010 is significant because it represents the year when shale oil revolution (crude oil extraction from non-permeable formations),  truly began in Texas. This move expanded the boundaries of where oil production was possible, which in turn expanded where flaring would occur. The increasing production of oil from locations further removed from any sort of gas processing facility or market for the gas has led to a massive increase in flaring volumes, and a 'new normal' in Texas. One important feature about the data: every volume is self-reported by the operating companies the the TRRC. 
@@ -38,7 +39,31 @@ I have a great deal of domain knowledge in the Oil & Gas industry, so I understo
 |Months from First Report| Tracking how many reporting periods have passed from first reporting production | Number of months | With this feature I wasnted to capture the effects of decaying production over time. I simply converted all month / year entries from type(int) to datetime, the subtracted the current report date from the first report date.|
 |Price of Oil | Dollars per Barrel in the given year / month | USD | Price of oil informs the oil produced. Oil produced informs the flaring volume. Created web scraping script to concatenate the year / month with the average price for the given cycle. Also includes availablility to include forecasted oil prices in the future. 
 
-## EDA
+## Data: Additional Considerations
+
+While I will investigate flare volumes in an absolute sense (i.e pure flare volume), it is important to understand that flaring only ocurrs becuase oil and gas are produced. If there is a lease that produces more oil than another one, it is likely that there will be more flaring. to account for this, I created some factors that will better depict the 'energy stewardship' of a particular lease. A few terms that will be introduced to account for this:
+  1. **Waste ratio**: This is a unit-less metric that will capture, from a pure chemical potential energy standpoint, how much energy (in kilo-watt of giga-watt hours) was vented or flared, over total energy produced (in kwH of Gwh) from a combinatino of oil, gas and condensate. 
+  2. **Flaring Intensity**: This will capture the flaring volume (Mcf) as a factor of oil produced (in bbl). Becuase oil production is the main target of production in Texas, it will weigh most geavily on the flaring volumes. 
+  
+  These ratios will illuminate areas that may flare less gas, but are in fact more wasteful as a factor of how much is produced. 
+  
+ ## EDA: Finding the Variance
+ 
+ ### District Level
+  
+<p align="center"> 
+  <img src="ec2_work/plots/second_pass/boxplotFlare Volumes by District (MMcf).png" width="500" /> 
+</p>
+
+<p float="center">
+  <img src="ec2_work/plots/second_pass/boxplotOil Production by District (bbl).png" width="475" /> 
+  <img src="ec2_work/plots/second_pass/boxplotGas Production by District (MMcf).png" width="475" />
+</p>
+<p float="center">
+  <img src="ec2_work/plots/second_pass/boxplotFlare Gas - Oil Production Ratio by District.png" width="475" />
+  <img src="ec2_work/plots/second_pass/boxplotFlare Gas - Gas Production Ratio by District.png" width="475" />
+</p>
+
 
 
 
