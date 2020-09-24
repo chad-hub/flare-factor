@@ -51,8 +51,10 @@ While I will investigate flare volumes in an absolute sense (i.e pure flare volu
  
  ### District Level
   
- - The Boxplots break down the aggregate production and flaring values by district  
- - Also provided the flariring volumes, normalized by both oil production and gas production  
+ - The Boxplots break down the aggregate  
+   production and flaring values by district  
+ - Also provided the flariring volumes,  
+   normalized by both oil production and gas production  
 
 
 <p align="right"> 
