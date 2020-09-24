@@ -90,8 +90,8 @@ While I will investigate flare volumes in an absolute sense (i.e pure flare volu
 - We can see that the companies that contributed most to flaring, contributed a similar amout to oil production
 
 <p float="center"> 
-  <img src="ec2_work/plots/second_pass/operator_contribution.png" width="600" />
-  <img src="ec2_work/plots/second_pass/operator_contribution_oil.png" width="600" />
+  <img src="ec2_work/plots/second_pass/operator_contribution.png" width="500" />
+  <img src="ec2_work/plots/second_pass/operator_contribution_oil.png" width="500" />
 </p>
 
 ## Decay
