@@ -118,8 +118,12 @@ I landed on using a Gradient Boosting model becuase I wanted an ensemble method 
  **Train R2: 0.572**
  **Test R2: 0.014**
  
- ## Confounding Data
- 
+## Confounding Data
+-Some problems that I uncovered after getting poor predictive results. The most problematic is below. This shows that, on the same lease and same reporting period, different operators report production and flaring separately. I will have to address this moving forward. 
+<p align="center"> 
+  <img src="ec2_work/plots/lease_two_ops.png" width="500" /> 
+</p>
 
-
+## First Approach Conclusions
+While predicting exact flare volumes has proven to be unfeasible, there is value in creating a model that can predict whether or not a lease in the future is likely to flare in various categories (high, medium, low, for example). I will have to change my approach, but I now have an effective data pipline and ability to access all the information I need to pivot my stradegy. 
 
