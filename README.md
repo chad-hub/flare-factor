@@ -86,9 +86,14 @@ While I will investigate flare volumes in an absolute sense (i.e pure flare volu
 </p>
 
 ## Operators
+- Top 25 operators are defined as the 25 companies that contributed most to the total flaring volume
+- We can see that the companies that contributed most to flaring, contributed a similar amout to oil production
 <p align="center"> 
-  <img src="ec2_work/plots/second_pass/operator_contribution.png" width="500" /> 
+  <img src="ec2_work/plots/second_pass/operator_contribution.png" width="600" /> 
 </p>
+
+## Decay
+
 
 
 
