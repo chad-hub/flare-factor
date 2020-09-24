@@ -55,7 +55,11 @@ While I will investigate flare volumes in an absolute sense (i.e pure flare volu
    production and flaring values by district  
  - Also provided the flariring volumes,  
    normalized by both oil production and gas production  
-<p float="right"> 
+<p float="center"> 
+  <div style="text-align: left">  - The Boxplots break down the aggregate  
+   production and flaring values by district  
+ - Also provided the flariring volumes,  
+   normalized by both oil production and gas production   </div
   <img src="ec2_work/plots/second_pass/boxplotFlare Volumes by District (MMcf).png" width="500" /> 
 </p>
 
