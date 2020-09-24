@@ -193,123 +193,47 @@ def district_boxplot(df):
 # %%
 district_boxplot(df)
 # %%
-def county_eda(data):
-
-  county_df = data.groupby(['COUNTY_NAME', 'DISTRICT_NO'])['TOTAL_LEASE_FLARE_VOL',
-            'LEASE_OIL_PROD_VOL', 'LEASE_CSGD_PROD_VOL',
-            'LEASE_GAS_PROD_VOL'].sum().reset_index()
-  districts = list(np.unique(county_df['DISTRICT_NO']))
-  # fig, axes = plt.subplots(nrows=7, ncols=2, sharey=True)
-  # axes = axes.flatten()
-  for idx, d in enumerate(districts):
-    fig = plt.figure(1)
-    ax = fig.add_subplot(111)
-    df = county_df[county_df['DISTRICT_NO'] == d ]
-    df['ratio'] = df['TOTAL_LEASE_FLARE_VOL']
-    # df = df.groupby('COUNTY_NAME')['ratio'].sum().reset_index()
-    # y_vals = list(df['ratio'])
-    # x_labels = list(np.unique(df['COUNTY_NAME']))
-    sns.distplot((county_df['TOTAL_LEASE_FLARE_VOL'] / county_df['LEASE_OIL_PROD_VOL']).replace([np.inf], np.nan).dropna(how='all'), kde=False, norm_hist=True)
-    # axes[idx].set_xticklabels(x_labels, rotation='vertical')
-    # axes[idx].set_title('County Average Flaring Intensity'.format(d))
-    # sns.distplot((county_df.groupby('COUNTY_NAME')['TOTAL_LEASE_FLARE_VOL'].sum()))
-    plt.title(f'District {d} Flaring Itensity')
-    plt.show()
-
-  # .tight_layout(pad=50.0)
+# %%
+def operator_eda(data):
+  op_df = data.groupby(['OPERATOR_NAME'])['CYCLE_YEAR','TOTAL_LEASE_FLARE_VOL',
+            'LEASE_OIL_PROD_VOL', 'LEASE_CSGD_PROD_VOL', 'LEASE_GAS_PROD_VOL'].reset_index()
+  print(op_df.head())
+  top_100_names = list(op_df.groupby('OPERATOR_NAME')['TOTAL_LEASE_FLARE_VOL'].sum().nlargest(100, keep='first').index)
+  print(top_100_names)
+  top_100_mask = op_df.index.isin([top_100_names])
+  top_100 = op_df.loc[top_100_names, :]
+  print(top_100.shape)
+  else_df = op_df[~top_100_mask]
+  print(else_df.shape)
+  top_vals = []
+  else_vals = []
+  x_vals = op_df['CYCLE_YEAR'].unique()
+  for y in x_vals:
+    top_vals.append(top_100[top_100['CYCLE_YEAR']== y ]['TOTAL_LEASE_FLARE_VOL'].sum() / 1000)
+    else_vals.append(else_df[else_df['CYCLE_YEAR']== y ]['TOTAL_LEASE_FLARE_VOL'].sum() / 1000)
+  print(len(else_vals))
+  print(len(top_vals))
+  y_vals = [top_vals, else_vals]
+  plt.stackplot(x_vals, y_vals, labels=['Top 100 Operators', 'Everyone Else'])
+  # plt.xlabel(np.unique(op_df['CYCLE_YEAR']))
+  plt.legend(loc='upper left')
+  plt.show()
 
 # %%
-county_eda(df)
-
-
+test = df.groupby(['OPERATOR_NAME'])['TOTAL_LEASE_FLARE_VOL',
+            'LEASE_OIL_PROD_VOL', 'LEASE_CSGD_PROD_VOL', 'LEASE_GAS_PROD_VOL'].sum().reset_index()
+# top_100 = op_df.nlargest(100, 'TOTAL_LEASE_FLARE_VOL', keep='all')
+test_100 = test[['OPERATOR_NAME','TOTAL_LEASE_FLARE_VOL']].nlargest(100, 'TOTAL_LEASE_FLARE_VOL')
+test_100.head()
 # %%
-test = df.groupby(['COUNTY_NAME'])['TOTAL_LEASE_FLARE_VOL',
-            'LEASE_OIL_PROD_VOL', 'LEASE_CSGD_PROD_VOL',
-            'LEASE_GAS_PROD_VOL'].sum().reset_index()
+test_100['OPERATOR_NAME']
 # %%
-test.head()
-
-
-
-
-
-
-
-
-
-# %%
-operators_df['LEASE_NO'].nlargest(100, keep='all')
-# %%
-operators_df.sort_values(['LEASE_NO'], axis=0, ascending=False)
-# %%
-e = sns.lineplot(x=df_2008_plus['YEAR'],
-            y=(df_2008_plus['TOTAL_LEASE_FLARE_VOL'] / df_2008_plus['LEASE_OIL_PROD_VOL']),
-            hue=df_2008_plus['DISTRICT_NO'],
-            palette='coolwarm',
-            legend='full'
-            )
-e.set_title('Flare / Oil Ratio by District (2008-2019')
-# %%
-e = sns.lineplot(x=df_2008_plus['YEAR'],
-            y=(df_2008_plus['TOTAL_LEASE_FLARE_VOL'] / df_2008_plus['LEASE_CSGD_PROD_VOL']),
-            hue=df_2008_plus['DISTRICT_NO'],
-            palette='coolwarm',
-            legend='full'
-            )
-e.set_title('Flare / CSGD Ratio by District (2008-2019')
-# %%
-operators_df_flare = df_2000_plus.groupby(['OPERATOR_NAME_x', 'OPERATOR_NO_x'])['LEASE_OIL_PROD_VOL',
-                                                                  'LEASE_GAS_PROD_VOL', 'LEASE_COND_PROD_VOL',
-                                                                  'LEASE_CSGD_PROD_VOL', 'TOTAL_LEASE_FLARE_VOL'].sum().reset_index()
-# %%
-operators_df_flare.head()
-
-# %%
-operators_df = pd.merge(operators_df, operators_df_flare, on=['OPERATOR_NAME_x', 'OPERATOR_NO_x'], how='inner')
-# %%
-operators_df.columns
-# %%
-op_bins = pd.cut(operators_df['LEASE_NO'], bins=3, retbins=True)
-# %%
-operators_df['FLARE-OIL-BBL RATIO'] = operators_df['TOTAL_LEASE_FLARE_VOL'] / operators_df['LEASE_OIL_PROD_VOL']
-# %%
-operators_df['AVG_FLARE_PER_LEASE'] = operators_df['TOTAL_LEASE_FLARE_VOL'] / operators_df['LEASE_NO']
-
+operator_eda(df)
 # %%
 
-axs[0] = sns.lineplot(x=df_2000_plus['YEAR'],
-            y=(df_2000_plus['TOTAL_LEASE_FLARE_VOL'] / df_2000_plus['LEASE_OIL_PROD_VOL']),
-            hue=df_2000_plus['DISTRICT_NO'],
-            palette='coolwarm',
-            legend='full'
-            )
-
-axs[1] = sns.lineplot(x=df_2000_plus['YEAR'],
-            y=(df_2000_plus['Price of Oil']),
-            palette='coolwarm',
-            legend='full')
-
-axs[0].set_title('Flare / Oil Ratio by District (2000-2019')
-axs[1].set_title('Price of Oil (2000-2019)')
+df['OPERATOR_NAME'].value_counts()
 # %%
-dist_year_grouped = df_2000_plus.groupby(['DISTRICT_NO', 'YEAR','Price of Oil','MONTHS_FROM_FIRST_REPORT'])['LEASE_OIL_PROD_VOL',
-                            'LEASE_GAS_PROD_VOL',
-                            'LEASE_COND_PROD_VOL',
-                            'LEASE_CSGD_PROD_VOL',
-                            'TOTAL_LEASE_FLARE_VOL'].sum().reset_index()
-# %%
-# %%
-
-# %%
-
-# %%
-
-
-
-# %%
-
-df_2000['WASTE_RATIO'] = df_2000['LEASE_FLARE_ENERGY (GWH)'] / df_2000['TOTAL_ENERGY_PROD (GWH)']
-## Drop inf values w/ np.where(WASTE_RATIO) = np.inf
+df.shape
 # %%
 inf_idx = np.where(df_2000['WASTE_RATIO'] == np.inf)[0]
 df_2000.drop(inf_idx, axis=0, inplace=True)
@@ -349,15 +273,6 @@ n.set(ylim=(0,1.25))
 n.set_title('Waste Ratio After First Report')
 plt.show(n)
 
-# %%
-df_2000['WASTE_RATIO'].nlargest(20)
-# %%
-df_2000.to_pickle('df_2000.pkl')
-# %%
-lease_df.to_pickle('lease_df.pkl')
-operators_df.to_pickle('operators_df.pkl')
-# %%
-df_2000 = pd.read_pickle('df_2000.pkl')
 
 # %%
 largest = df_2000['WASTE_RATIO'].nlargest(100).index
