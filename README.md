@@ -68,6 +68,8 @@ While I will investigate flare volumes in an absolute sense (i.e pure flare volu
 </p>
 
 ### Follow the Money
+- Adding the price of oil provides insight into how economics play into production and flaring volume
+- The dark red line is the average of all the districts, while the lightly shaded red area is 95% confidence interval
 
 <p align="center"> 
   <img src="ec2_work/plots/second_pass/flare_price.png" width="500" /> 
@@ -81,6 +83,11 @@ While I will investigate flare volumes in an absolute sense (i.e pure flare volu
 <p float="center">
   <img src="ec2_work/plots/second_pass/flare_oil_ratio.png" width="475" />
   <img src="ec2_work/plots/second_pass/flare_gas_ratio_price.png" width="475" />
+</p>
+
+## Operators
+<p align="center"> 
+  <img src="ec2_work/plots/second_pass/operator_contribution.png" width="500" /> 
 </p>
 
 
