@@ -110,7 +110,7 @@ In picking a model to run to try to predict flaring volumes or energy wasted, th
 I landed on using a Gradient Boosting model becuase I wanted an ensemble method tless prone to over-fitting (if possible), and the non-linearity of the data. The initial results were predictable. 
 
 <p align="center"> 
-  <img src="ec2_work/plots/gbr_staged_predict_0.1.png" width="900" heght="500" /> 
+  <img src="ec2_work/plots/gbr_staged_predict_0.1.png" width="600" /> 
 </p>
  What we get is a VERY overfit model. No matter the amount of tweaking, the predictability of precise flaring volumes is not feasible. 
  
@@ -121,7 +121,7 @@ I landed on using a Gradient Boosting model becuase I wanted an ensemble method 
 ## Confounding Data
 -Some problems that I uncovered after getting poor predictive results. The most problematic is below. This shows that, on the same lease and same reporting period, different operators report production and flaring separately. I will have to address this moving forward. 
 <p align="center"> 
-  <img src="ec2_work/plots/lease_two_ops.png" width="500" /> 
+  <img src="ec2_work/plots/lease_two_ops.png" width="900" /> 
 </p>
 
 ## First Approach Conclusions
