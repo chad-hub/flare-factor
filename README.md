@@ -110,7 +110,7 @@ In picking a model to run to try to predict flaring volumes or energy wasted, th
 I landed on using a Gradient Boosting model becuase I wanted an ensemble method tless prone to over-fitting (if possible), and the non-linearity of the data. The initial results were predictable. 
 
 <p align="center"> 
-  <img src="ec2_work/plots/gbr_staged_predict_0.1.png" width="500" /> 
+  <img src="ec2_work/plots/gbr_staged_predict_0.1.png" width="900" heght="500" /> 
 </p>
  What we get is a VERY overfit model. No matter the amount of tweaking, the predictability of precise flaring volumes is not feasible. 
  
