@@ -104,7 +104,7 @@ While I will investigate flare volumes in an absolute sense (i.e. pure flare vol
 
 ## Model
 In picking a model to run to try to predict flaring volumes or energy wasted, there are a few important items to consider:
-  1) Flaring can often happen extremely randomly. If equipment fails and gas has nowhere else to go, flaring will happen at a high rate until the equipment is fixed
+  1) Flaring often happens randomly. If equipment fails and gas has nowhere else to go, flaring will happen at a high rate until the equipment is fixed
   2) There are millions of observations...any model will take a LONG time to train. 
   3) While predicting how much gas is flared in any given month based on historical data is interesting, the likelihood that this will provide anything usable is low. This is       because even if the model predicts well, it won't provide direct insight into the areas that will be flaring in the future. 
 
