@@ -55,17 +55,17 @@ While I will investigate flare volumes in an absolute sense (i.e. pure flare vol
  - Also provided the flaring volumes normalized by both oil production and gas production
  - Normalized values show which districts are better than other at handling the gas
 <p align="center"> 
-  <img src="ec2_work/plots/second_pass/boxplotFlare Volumes by District (MMcf).png" width="500" /> 
+  <img src="ec2_work/plots/second_pass/boxplotFlare Volumes by District (MMcf).png" width="460" /> 
 </p>
 
 <p float="center">
-  <img src="ec2_work/plots/second_pass/boxplotOil Production by District (bbl).png" width="470" /> 
-  <img src="ec2_work/plots/second_pass/boxplotGas Production by District (MMcf).png" width="470" />
+  <img src="ec2_work/plots/second_pass/boxplotOil Production by District (bbl).png" width="460" /> 
+  <img src="ec2_work/plots/second_pass/boxplotGas Production by District (MMcf).png" width="460" />
 </p>
 
 <p float="center">
-  <img src="ec2_work/plots/second_pass/boxplotFlare Gas - Oil Production Ratio by District.png" width="470" />
-  <img src="ec2_work/plots/second_pass/boxplotFlare Gas - Gas Production Ratio by District.png" width="470" />
+  <img src="ec2_work/plots/second_pass/boxplotFlare Gas - Oil Production Ratio by District.png" width="460" />
+  <img src="ec2_work/plots/second_pass/boxplotFlare Gas - Gas Production Ratio by District.png" width="460" />
 </p>
 
 ### Follow the Money
